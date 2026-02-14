@@ -1,0 +1,401 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1BC4A9F008129F2CA240D555 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C108DAF4E4C6F87B3E2034E /* KeychainService.swift */; };
+		1CEFA97D216138458F2E1BDE /* MeetingMindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E54E25A6C0017D872D1587A /* MeetingMindApp.swift */; };
+		222E2F1182E4C3D40DFCB9DC /* MeetingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */; };
+		2BF1BBA073FE0ECE721DD056 /* AudioPlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA58E4B3DA150F31733F3F8 /* AudioPlayerService.swift */; };
+		2E45A9E32DFDD45718437E82 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A56BDA44D6761607AC66B6E /* SettingsView.swift */; };
+		34BAE354ED3080853C50A886 /* EventKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D89BE85CF1FF57552C9F95 /* EventKitService.swift */; };
+		3C0BEA00A50FA4192238A91C /* ActionItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */; };
+		60896929CD6644E59D2FA2E3 /* MeetingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */; };
+		66764B52A2EBA14CC3C3A586 /* MeetingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */; };
+		75B4909E1BB08CA2C9FA000A /* AudioRecorderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911557214C6E938110E6CB7 /* AudioRecorderService.swift */; };
+		7ACF46A653FD74819AE99A5A /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */; };
+		8F344A6DDD4BBCC9557BC3C9 /* ActionItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60F6D6FD20665BBE68D7280C /* ActionItemType.swift */; };
+		9E856EC7E79625F40EDD20E6 /* MeetingRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */; };
+		B4A2638FA74330C43D88589E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AB14326952753AE50B5157 /* ContentView.swift */; };
+		B773444DE6AB30D1F905508D /* AIAnalysisResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */; };
+		B8D338D2D5BA49CADA72CE74 /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */; };
+		CDA3BB99B0604BB5B6BBF452 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E623AAB98D3679555A15A3 /* WaveformView.swift */; };
+		D24BA91AAF286499B529298D /* RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DC678CB54A36B558CE03D2 /* RecordingView.swift */; };
+		D8F12F7A78382E1AB58BA9D6 /* ActionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE82ADA663685D1DF2F1037 /* ActionItem.swift */; };
+		FCC51EC63B4C63C24D9313AB /* Meeting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FD06F47139FC41D85FAEDC /* Meeting.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3E54E25A6C0017D872D1587A /* MeetingMindApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMindApp.swift; sourceTree = "<group>"; };
+		41AB14326952753AE50B5157 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		60F6D6FD20665BBE68D7280C /* ActionItemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItemType.swift; sourceTree = "<group>"; };
+		65DC678CB54A36B558CE03D2 /* RecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingView.swift; sourceTree = "<group>"; };
+		65FD06F47139FC41D85FAEDC /* Meeting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meeting.swift; sourceTree = "<group>"; };
+		6A56BDA44D6761607AC66B6E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingDetailView.swift; sourceTree = "<group>"; };
+		8FE82ADA663685D1DF2F1037 /* ActionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItem.swift; sourceTree = "<group>"; };
+		93D89BE85CF1FF57552C9F95 /* EventKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventKitService.swift; sourceTree = "<group>"; };
+		9C108DAF4E4C6F87B3E2034E /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		9EA58E4B3DA150F31733F3F8 /* AudioPlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerService.swift; sourceTree = "<group>"; };
+		A7DC8851B6BC9BA9E33DC49C /* MeetingMind.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeetingMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A911557214C6E938110E6CB7 /* AudioRecorderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderService.swift; sourceTree = "<group>"; };
+		AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingStatus.swift; sourceTree = "<group>"; };
+		ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
+		B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRowView.swift; sourceTree = "<group>"; };
+		C5E623AAB98D3679555A15A3 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
+		C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
+		CA325F93C614E684371E3BFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItemRowView.swift; sourceTree = "<group>"; };
+		DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingListView.swift; sourceTree = "<group>"; };
+		F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisResult.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		119B4015A8974E1D09489A72 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CA325F93C614E684371E3BFE /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		2F6DE86B4926F878B5C74B1A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */,
+				86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */,
+				DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */,
+				B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */,
+				65DC678CB54A36B558CE03D2 /* RecordingView.swift */,
+				6A56BDA44D6761607AC66B6E /* SettingsView.swift */,
+				C5E623AAB98D3679555A15A3 /* WaveformView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		46A6A4BE604F0DAE8279AD15 = {
+			isa = PBXGroup;
+			children = (
+				62F802C14AADC2728BB4069C /* MeetingMind */,
+				A50345A75D26609346E0313F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		62F802C14AADC2728BB4069C /* MeetingMind */ = {
+			isa = PBXGroup;
+			children = (
+				41AB14326952753AE50B5157 /* ContentView.swift */,
+				3E54E25A6C0017D872D1587A /* MeetingMindApp.swift */,
+				7B493F62F414AC3FF058A16B /* Models */,
+				119B4015A8974E1D09489A72 /* Resources */,
+				C1B0969BFE9796996BBA701A /* Services */,
+				2F6DE86B4926F878B5C74B1A /* Views */,
+			);
+			path = MeetingMind;
+			sourceTree = "<group>";
+		};
+		7B493F62F414AC3FF058A16B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8FE82ADA663685D1DF2F1037 /* ActionItem.swift */,
+				60F6D6FD20665BBE68D7280C /* ActionItemType.swift */,
+				F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */,
+				65FD06F47139FC41D85FAEDC /* Meeting.swift */,
+				AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A50345A75D26609346E0313F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A7DC8851B6BC9BA9E33DC49C /* MeetingMind.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C1B0969BFE9796996BBA701A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				9EA58E4B3DA150F31733F3F8 /* AudioPlayerService.swift */,
+				A911557214C6E938110E6CB7 /* AudioRecorderService.swift */,
+				ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */,
+				93D89BE85CF1FF57552C9F95 /* EventKitService.swift */,
+				9C108DAF4E4C6F87B3E2034E /* KeychainService.swift */,
+				C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F72B4E608EADF5AB68F61C87 /* MeetingMind */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE3A694F2706378046571C58 /* Build configuration list for PBXNativeTarget "MeetingMind" */;
+			buildPhases = (
+				AC553E594A629DEDDAEA5A38 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MeetingMind;
+			packageProductDependencies = (
+			);
+			productName = MeetingMind;
+			productReference = A7DC8851B6BC9BA9E33DC49C /* MeetingMind.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D655FF1A170D50A8A16E44E2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					F72B4E608EADF5AB68F61C87 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 58E7ED18EDB0A16DCB23A98B /* Build configuration list for PBXProject "MeetingMind" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 46A6A4BE604F0DAE8279AD15;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F72B4E608EADF5AB68F61C87 /* MeetingMind */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AC553E594A629DEDDAEA5A38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B773444DE6AB30D1F905508D /* AIAnalysisResult.swift in Sources */,
+				D8F12F7A78382E1AB58BA9D6 /* ActionItem.swift in Sources */,
+				3C0BEA00A50FA4192238A91C /* ActionItemRowView.swift in Sources */,
+				8F344A6DDD4BBCC9557BC3C9 /* ActionItemType.swift in Sources */,
+				2BF1BBA073FE0ECE721DD056 /* AudioPlayerService.swift in Sources */,
+				75B4909E1BB08CA2C9FA000A /* AudioRecorderService.swift in Sources */,
+				B8D338D2D5BA49CADA72CE74 /* ClaudeAPIService.swift in Sources */,
+				B4A2638FA74330C43D88589E /* ContentView.swift in Sources */,
+				34BAE354ED3080853C50A886 /* EventKitService.swift in Sources */,
+				1BC4A9F008129F2CA240D555 /* KeychainService.swift in Sources */,
+				FCC51EC63B4C63C24D9313AB /* Meeting.swift in Sources */,
+				222E2F1182E4C3D40DFCB9DC /* MeetingDetailView.swift in Sources */,
+				66764B52A2EBA14CC3C3A586 /* MeetingListView.swift in Sources */,
+				1CEFA97D216138458F2E1BDE /* MeetingMindApp.swift in Sources */,
+				9E856EC7E79625F40EDD20E6 /* MeetingRowView.swift in Sources */,
+				60896929CD6644E59D2FA2E3 /* MeetingStatus.swift in Sources */,
+				D24BA91AAF286499B529298D /* RecordingView.swift in Sources */,
+				2E45A9E32DFDD45718437E82 /* SettingsView.swift in Sources */,
+				7ACF46A653FD74819AE99A5A /* TranscriptionService.swift in Sources */,
+				CDA3BB99B0604BB5B6BBF452 /* WaveformView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A67172E18CEC6AB9F78FFDF2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = MeetingMind/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.meetingmind.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B05F13C7DBBC6D45020FE87A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = MeetingMind/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.meetingmind.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		E7AB75210C027B2B39177274 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		FFEE7CCFF4B7DD970FD16D41 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		58E7ED18EDB0A16DCB23A98B /* Build configuration list for PBXProject "MeetingMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FFEE7CCFF4B7DD970FD16D41 /* Debug */,
+				E7AB75210C027B2B39177274 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BE3A694F2706378046571C58 /* Build configuration list for PBXNativeTarget "MeetingMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A67172E18CEC6AB9F78FFDF2 /* Debug */,
+				B05F13C7DBBC6D45020FE87A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D655FF1A170D50A8A16E44E2 /* Project object */;
+}
