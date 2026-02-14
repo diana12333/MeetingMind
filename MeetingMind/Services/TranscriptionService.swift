@@ -1,6 +1,7 @@
 import Speech
 import Foundation
 
+@MainActor
 @Observable
 final class TranscriptionService {
     var isTranscribing = false

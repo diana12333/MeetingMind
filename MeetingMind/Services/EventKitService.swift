@@ -1,6 +1,7 @@
 import EventKit
 import Foundation
 
+@MainActor
 final class EventKitService {
     private let eventStore = EKEventStore()
 
