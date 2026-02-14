@@ -1,9 +1,11 @@
 import AVFoundation
 import Foundation
 
+@MainActor
 @Observable
-final class AudioPlayerService: NSObject, AVAudioPlayerDelegate {
+final class AudioPlayerService {
     private var audioPlayer: AVAudioPlayer?
+    private var delegate: PlayerDelegate?
 
     var isPlaying = false
     var currentTime: TimeInterval = 0
@@ -13,10 +15,19 @@ final class AudioPlayerService: NSObject, AVAudioPlayerDelegate {
 
     func loadAudio(url: URL) throws {
         audioPlayer = try AVAudioPlayer(contentsOf: url)
-        audioPlayer?.delegate = self
         audioPlayer?.enableRate = true
         audioPlayer?.prepareToPlay()
         duration = audioPlayer?.duration ?? 0
+
+        let del = PlayerDelegate { [weak self] in
+            Task { @MainActor in
+                self?.isPlaying = false
+                self?.timer?.invalidate()
+                self?.currentTime = 0
+            }
+        }
+        delegate = del
+        audioPlayer?.delegate = del
     }
 
     func play() {
@@ -48,13 +59,21 @@ final class AudioPlayerService: NSObject, AVAudioPlayerDelegate {
 
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            self?.currentTime = self?.audioPlayer?.currentTime ?? 0
+            MainActor.assumeIsolated {
+                self?.currentTime = self?.audioPlayer?.currentTime ?? 0
+            }
         }
+    }
+}
+
+private final class PlayerDelegate: NSObject, AVAudioPlayerDelegate, Sendable {
+    let onFinish: @Sendable () -> Void
+
+    init(onFinish: @escaping @Sendable () -> Void) {
+        self.onFinish = onFinish
     }
 
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        isPlaying = false
-        timer?.invalidate()
-        currentTime = 0
+        onFinish()
     }
 }

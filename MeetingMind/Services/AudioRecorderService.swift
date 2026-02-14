@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 
+@MainActor
 @Observable
 final class AudioRecorderService {
     private var audioRecorder: AVAudioRecorder?
@@ -75,16 +76,18 @@ final class AudioRecorderService {
 
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            if let startTime = self.startTime {
-                self.elapsedTime = self.accumulatedTime + Date().timeIntervalSince(startTime)
-            }
-            self.audioRecorder?.updateMeters()
-            if let level = self.audioRecorder?.averagePower(forChannel: 0) {
-                let normalizedLevel = max(0, (level + 60) / 60)
-                self.audioLevels.append(normalizedLevel)
-                if self.audioLevels.count > 100 {
-                    self.audioLevels.removeFirst()
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if let startTime = self.startTime {
+                    self.elapsedTime = self.accumulatedTime + Date().timeIntervalSince(startTime)
+                }
+                self.audioRecorder?.updateMeters()
+                if let level = self.audioRecorder?.averagePower(forChannel: 0) {
+                    let normalizedLevel = max(0, (level + 60) / 60)
+                    self.audioLevels.append(normalizedLevel)
+                    if self.audioLevels.count > 100 {
+                        self.audioLevels.removeFirst()
+                    }
                 }
             }
         }
