@@ -32,7 +32,8 @@ struct MeetingDetailView: View {
             TabView(selection: $selectedTab) {
                 TranscriptTabView(
                     transcriptText: meeting.transcriptText,
-                    isTranscribing: transcriptionService.isTranscribing
+                    isTranscribing: transcriptionService.isTranscribing,
+                    partialText: transcriptionService.transcriptText
                 )
                 .tag(0)
 
@@ -55,6 +56,19 @@ struct MeetingDetailView: View {
         .navigationTitle(meeting.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .secondaryAction) {
+                Button {
+                    transcribeAudio()
+                } label: {
+                    if transcriptionService.isTranscribing {
+                        ProgressView()
+                    } else {
+                        Label("Transcribe", systemImage: "waveform")
+                    }
+                }
+                .disabled(meeting.audioFileURL == nil || transcriptionService.isTranscribing)
+            }
+
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     analyzeTranscript()
@@ -87,20 +101,40 @@ struct MeetingDetailView: View {
     }
 
     private func transcribeAudio() {
-        guard let url = meeting.audioFileURL else { return }
+        guard let url = meeting.audioFileURL else {
+            errorMessage = "No audio file found for this meeting."
+            showError = true
+            return
+        }
+
+        // Verify file exists
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            errorMessage = "Audio file does not exist at: \(url.lastPathComponent)"
+            showError = true
+            return
+        }
+
+        meeting.status = .transcribing
         Task { @MainActor in
             let authorized = await transcriptionService.requestAuthorization()
             guard authorized else {
-                errorMessage = "Speech recognition permission required."
+                errorMessage = "Speech recognition permission not granted. Go to Settings > Privacy > Speech Recognition and enable it for MeetingMind."
                 showError = true
+                meeting.status = .failed
                 return
             }
             do {
                 let text = try await transcriptionService.transcribeAudioFile(url: url)
-                meeting.transcriptText = text
-                meeting.status = .complete
+                if text.isEmpty {
+                    errorMessage = "Transcription returned empty text. The recording may be too short or silent."
+                    showError = true
+                    meeting.status = .complete
+                } else {
+                    meeting.transcriptText = text
+                    meeting.status = .complete
+                }
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = "Transcription failed: \(error.localizedDescription)"
                 showError = true
                 meeting.status = .failed
             }
@@ -198,6 +232,7 @@ struct AudioPlayerBar: View {
 struct TranscriptTabView: View {
     let transcriptText: String
     let isTranscribing: Bool
+    let partialText: String
 
     var body: some View {
         ScrollView {
@@ -206,13 +241,18 @@ struct TranscriptTabView: View {
                     ProgressView()
                     Text("Transcribing...")
                         .foregroundStyle(.secondary)
+                    if !partialText.isEmpty {
+                        Text(partialText)
+                            .padding()
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(.top, 40)
             } else if transcriptText.isEmpty {
                 ContentUnavailableView(
                     "No Transcript",
                     systemImage: "text.bubble",
-                    description: Text("Transcript will appear after recording completes.")
+                    description: Text("Tap the ⋯ menu and select Transcribe, or tap the waveform button in the toolbar.")
                 )
             } else {
                 Text(transcriptText)
