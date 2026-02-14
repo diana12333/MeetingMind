@@ -15,7 +15,7 @@ struct MeetingDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             if meeting.audioFileURL != nil {
-                AudioPlayerBar(player: playerService, meeting: meeting)
+                AudioPlayerBar(player: playerService)
                     .padding()
                 Divider()
             }
@@ -31,8 +31,8 @@ struct MeetingDetailView: View {
 
             TabView(selection: $selectedTab) {
                 TranscriptTabView(
-                    meeting: meeting,
-                    transcriptionService: transcriptionService
+                    transcriptText: meeting.transcriptText,
+                    isTranscribing: transcriptionService.isTranscribing
                 )
                 .tag(0)
 
@@ -88,7 +88,7 @@ struct MeetingDetailView: View {
 
     private func transcribeAudio() {
         guard let url = meeting.audioFileURL else { return }
-        Task {
+        Task { @MainActor in
             let authorized = await transcriptionService.requestAuthorization()
             guard authorized else {
                 errorMessage = "Speech recognition permission required."
@@ -108,7 +108,7 @@ struct MeetingDetailView: View {
     }
 
     private func analyzeTranscript() {
-        Task {
+        Task { @MainActor in
             meeting.status = .analyzing
             do {
                 let result = try await claudeService.analyzeTranscript(meeting.transcriptText)
@@ -136,8 +136,7 @@ struct MeetingDetailView: View {
 // MARK: - Audio Player Bar
 
 struct AudioPlayerBar: View {
-    @Bindable var player: AudioPlayerService
-    let meeting: Meeting
+    var player: AudioPlayerService
 
     var body: some View {
         VStack(spacing: 8) {
@@ -197,26 +196,26 @@ struct AudioPlayerBar: View {
 // MARK: - Tab Views
 
 struct TranscriptTabView: View {
-    let meeting: Meeting
-    let transcriptionService: TranscriptionService
+    let transcriptText: String
+    let isTranscribing: Bool
 
     var body: some View {
         ScrollView {
-            if transcriptionService.isTranscribing {
+            if isTranscribing {
                 VStack(spacing: 12) {
                     ProgressView()
                     Text("Transcribing...")
                         .foregroundStyle(.secondary)
                 }
                 .padding(.top, 40)
-            } else if meeting.transcriptText.isEmpty {
+            } else if transcriptText.isEmpty {
                 ContentUnavailableView(
                     "No Transcript",
                     systemImage: "text.bubble",
                     description: Text("Transcript will appear after recording completes.")
                 )
             } else {
-                Text(meeting.transcriptText)
+                Text(transcriptText)
                     .padding()
                     .textSelection(.enabled)
             }
@@ -302,7 +301,7 @@ struct ActionItemsTabView: View {
     }
 
     private func exportActionItem(_ item: ActionItem) {
-        Task {
+        Task { @MainActor in
             do {
                 switch item.type {
                 case .calendarEvent:
