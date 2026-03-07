@@ -13,6 +13,7 @@ struct MeetingDetailView: View {
     @State private var transcriptionService = TranscriptionService()
     @State private var eventKitService = EventKitService()
     @State private var playerService = AudioPlayerService()
+    @State private var coordinator = NavigationCoordinator()
 
     @AppStorage("autoAnalyze") private var autoAnalyze = false
     @AppStorage("transcriptionLanguage") private var transcriptionLanguage = Locale.current.language.languageCode?.identifier ?? "en"
@@ -68,6 +69,16 @@ struct MeetingDetailView: View {
                     .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
                     .padding(.horizontal)
                     .padding(.top, Theme.spacing8)
+            }
+
+            if !meeting.speakerSegments.isEmpty {
+                TimelineBarView(
+                    segments: meeting.speakerSegments,
+                    duration: playerService.duration,
+                    currentTime: coordinator.currentTimestamp,
+                    speakerNames: meeting.speakerNames,
+                    onTap: { coordinator.seekTo($0) }
+                )
             }
 
             // Show a prominent action button when no transcript exists
@@ -260,24 +271,32 @@ struct MeetingDetailView: View {
             if claudeService == nil {
                 claudeService = ClaudeAPIService(subscriptionService: subscriptionService)
             }
+            coordinator.attach(player: playerService)
             loadAudio()
             if meeting.status == .transcribing {
                 transcribeAudio()
             }
+        }
+        .onChange(of: playerService.currentTime) { _, newTime in
+            coordinator.updatePlaybackPosition(newTime)
         }
     }
 
     private var hasAudio: Bool { meeting.audioFileURL != nil }
 
     private var contentTabView: some View {
-        let seekHandler: ((TimeInterval) -> Void)? = hasAudio ? { [self] t in seekAndPlay(t) } : nil
+        let seekHandler: ((TimeInterval) -> Void)? = hasAudio ? { coordinator.seekTo($0) } : nil
         return TabView(selection: $selectedTab) {
             TranscriptTabView(
                 transcriptText: meeting.transcriptText,
                 isTranscribing: transcriptionService.isTranscribing,
                 partialText: transcriptionService.transcriptText,
                 segments: meeting.transcriptSegments,
-                onSeek: seekHandler
+                speakerSegments: meeting.speakerSegments,
+                speakerNames: meeting.speakerNames,
+                onSeek: seekHandler,
+                scrollToTimestamp: coordinator.scrollToTimestamp,
+                currentTimestamp: coordinator.currentTimestamp
             )
             .tag(0)
 
@@ -305,11 +324,6 @@ struct MeetingDetailView: View {
             )
             .tag(3)
         }
-    }
-
-    private func seekAndPlay(_ time: TimeInterval) {
-        playerService.seek(to: time)
-        playerService.play()
     }
 
     private func loadAudio() {
