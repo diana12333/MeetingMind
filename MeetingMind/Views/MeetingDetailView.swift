@@ -284,6 +284,7 @@ struct MeetingDetailView: View {
             SummaryTabView(
                 summary: meeting.summary,
                 references: meeting.references,
+                executiveBrief: meeting.executiveBrief,
                 onSeek: seekHandler
             )
             .tag(1)
@@ -715,31 +716,106 @@ struct TranscriptTabView: View {
 struct SummaryTabView: View {
     let summary: String?
     var references: [AIReference] = []
+    var executiveBrief: AIAnalysisResult?
     var onSeek: ((TimeInterval) -> Void)?
 
     var body: some View {
         ScrollView {
-            if let summary, !summary.isEmpty {
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    // Section: Meeting Summary
-                    VStack(alignment: .leading, spacing: Theme.spacing8) {
-                        SectionHeaderLabel(title: "Meeting Summary", icon: "doc.text")
-
-                        VStack(alignment: .leading, spacing: Theme.spacing12) {
-                            if !references.isEmpty, let onSeek {
-                                RichSummaryText(summary: summary, references: references, onSeek: onSeek)
-                            } else {
-                                Text(summary)
-                                    .textSelection(.enabled)
-                            }
-                        }
-                        .padding(Theme.cardPadding)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Theme.surfaceTeal)
-                        .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+            if let brief = executiveBrief {
+                LazyVStack(alignment: .leading, spacing: Theme.spacing16) {
+                    // TL;DR Card
+                    BriefCard(title: "TL;DR", icon: "text.quote", surface: Theme.surfaceTeal) {
+                        Text(brief.effectiveTldr)
+                            .font(Theme.bodyFont)
                     }
 
-                    // Section: Sources (if references exist)
+                    // Key Decisions Card
+                    if let decisions = brief.keyDecisions, !decisions.isEmpty {
+                        BriefCard(title: "Key Decisions", icon: "checkmark.seal", surface: Theme.surfaceOrange) {
+                            ForEach(Array(decisions.enumerated()), id: \.offset) { _, decision in
+                                HStack(alignment: .top, spacing: Theme.spacing8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(Theme.orange500)
+                                        .font(.caption)
+                                        .padding(.top, 3)
+                                    VStack(alignment: .leading, spacing: Theme.spacing4) {
+                                        citedText(decision.text, citations: decision.citations, references: references, onSeek: onSeek)
+                                        if let ts = decision.timestampSeconds, let onSeek {
+                                            TimestampBadge(seconds: ts, onTap: onSeek)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Discussion Points Card
+                    if let points = brief.discussionPoints, !points.isEmpty {
+                        BriefCard(title: "Discussion Points", icon: "bubble.left.and.bubble.right", surface: Theme.surfaceDefault) {
+                            ForEach(Array(points.enumerated()), id: \.offset) { _, point in
+                                VStack(alignment: .leading, spacing: Theme.spacing4) {
+                                    Text(point.topic)
+                                        .font(Theme.subheadlineFont)
+                                        .fontWeight(.semibold)
+                                    citedText(point.summary, citations: point.citations, references: references, onSeek: onSeek)
+                                    if let ts = point.timestampSeconds, let onSeek {
+                                        TimestampBadge(seconds: ts, onTap: onSeek)
+                                    }
+                                }
+                                if point.topic != points.last?.topic {
+                                    Divider()
+                                }
+                            }
+                        }
+                    }
+
+                    // Open Questions Card
+                    if let questions = brief.openQuestions, !questions.isEmpty {
+                        BriefCard(title: "Open Questions", icon: "questionmark.circle", surface: Theme.surfacePurple) {
+                            ForEach(Array(questions.enumerated()), id: \.offset) { _, question in
+                                HStack(alignment: .top, spacing: Theme.spacing8) {
+                                    Image(systemName: "questionmark.circle")
+                                        .foregroundStyle(Theme.actionTask)
+                                        .font(.caption)
+                                        .padding(.top, 3)
+                                    VStack(alignment: .leading, spacing: Theme.spacing4) {
+                                        citedText(question.text, citations: question.citations, references: references, onSeek: onSeek)
+                                        if let ts = question.timestampSeconds, let onSeek {
+                                            TimestampBadge(seconds: ts, onTap: onSeek)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Next Steps Card
+                    if let steps = brief.nextSteps, !steps.isEmpty {
+                        BriefCard(title: "Next Steps", icon: "arrow.right.circle", surface: Theme.surfaceTeal) {
+                            ForEach(Array(steps.enumerated()), id: \.offset) { _, step in
+                                HStack(alignment: .top, spacing: Theme.spacing8) {
+                                    Image(systemName: "arrow.right.circle.fill")
+                                        .foregroundStyle(Theme.teal600)
+                                        .font(.caption)
+                                        .padding(.top, 3)
+                                    VStack(alignment: .leading, spacing: Theme.spacing4) {
+                                        Text(step.title)
+                                            .font(Theme.subheadlineFont)
+                                        if let assignee = step.assignee {
+                                            Text(assignee)
+                                                .font(Theme.captionFont)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        if let ts = step.timestampSeconds, let onSeek {
+                                            TimestampBadge(seconds: ts, onTap: onSeek)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Sources section
                     if !references.isEmpty {
                         VStack(alignment: .leading, spacing: Theme.spacing8) {
                             SectionHeaderLabel(title: "Sources", icon: "quote.opening")
@@ -752,11 +828,15 @@ struct SummaryTabView: View {
                                         .frame(width: 28, alignment: .leading)
 
                                     VStack(alignment: .leading, spacing: Theme.spacing4) {
+                                        if let speaker = ref.speaker {
+                                            Text(speaker)
+                                                .font(Theme.captionBoldFont)
+                                                .foregroundStyle(.secondary)
+                                        }
                                         Text(ref.passage)
                                             .font(Theme.subheadlineFont)
                                             .italic()
                                             .foregroundStyle(.secondary)
-
                                         if let onSeek {
                                             TimestampBadge(seconds: ref.timestampSeconds, onTap: onSeek)
                                         }
@@ -771,6 +851,26 @@ struct SummaryTabView: View {
                     }
                 }
                 .padding()
+            } else if let summary, !summary.isEmpty {
+                // Fallback: legacy plain summary for old meetings
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Theme.spacing8) {
+                        SectionHeaderLabel(title: "Meeting Summary", icon: "doc.text")
+                        VStack(alignment: .leading, spacing: Theme.spacing12) {
+                            if !references.isEmpty, let onSeek {
+                                RichSummaryText(summary: summary, references: references, onSeek: onSeek)
+                            } else {
+                                Text(summary)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        .padding(Theme.cardPadding)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Theme.surfaceTeal)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+                    }
+                }
+                .padding()
             } else {
                 ContentUnavailableView(
                     "No Summary",
@@ -778,6 +878,37 @@ struct SummaryTabView: View {
                     description: Text("Tap Analyze to generate a summary.")
                 )
             }
+        }
+    }
+
+    @ViewBuilder
+    private func citedText(_ text: String, citations: [Int]?, references: [AIReference], onSeek: ((TimeInterval) -> Void)?) -> some View {
+        if let onSeek, !references.isEmpty {
+            RichSummaryText(summary: text, references: references, onSeek: onSeek)
+        } else {
+            Text(text)
+                .font(Theme.bodyFont)
+        }
+    }
+}
+
+struct BriefCard<Content: View>: View {
+    let title: String
+    let icon: String
+    let surface: Color
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing8) {
+            SectionHeaderLabel(title: title, icon: icon)
+
+            VStack(alignment: .leading, spacing: Theme.spacing12) {
+                content
+            }
+            .padding(Theme.cardPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(surface)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
         }
     }
 }
