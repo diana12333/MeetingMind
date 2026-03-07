@@ -20,6 +20,7 @@ final class Meeting {
     var referencesJSON: String?
     var keyInsightsJSON: String?
     var speakerSegmentsJSON: String?
+    var executiveBriefJSON: String?
 
     // Notion export (optional → lightweight migration)
     var notionPageId: String?
@@ -118,5 +119,21 @@ final class Meeting {
 
     var speakerNames: [String] {
         Array(Set(speakerSegments.map(\.speaker))).sorted()
+    }
+
+    var executiveBrief: AIAnalysisResult? {
+        get {
+            guard let json = executiveBriefJSON,
+                  let data = json.data(using: .utf8) else { return nil }
+            return try? JSONDecoder().decode(AIAnalysisResult.self, from: data)
+        }
+        set {
+            guard let value = newValue,
+                  let data = try? JSONEncoder().encode(value) else {
+                executiveBriefJSON = nil
+                return
+            }
+            executiveBriefJSON = String(data: data, encoding: .utf8)
+        }
     }
 }
