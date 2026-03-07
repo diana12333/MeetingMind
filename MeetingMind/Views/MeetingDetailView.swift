@@ -669,6 +669,85 @@ struct SpeakerSegmentCard: View {
     }
 }
 
+// MARK: - Time Block Grouping
+
+struct TimeBlock: Identifiable {
+    let id: Int  // block index (0, 1, 2...)
+    let startSeconds: TimeInterval
+    let endSeconds: TimeInterval
+    let segments: [(index: Int, segment: SpeakerSegment)]
+
+    var headerText: String {
+        let startMin = Int(startSeconds) / 60
+        let endMin = Int(endSeconds) / 60
+        return "\(startMin):00 – \(endMin):00"
+    }
+
+    static func groupIntoTimeBlocks(_ segments: [SpeakerSegment], blockSize: TimeInterval = 300) -> [TimeBlock] {
+        guard !segments.isEmpty else { return [] }
+        var blocks: [Int: [(index: Int, segment: SpeakerSegment)]] = [:]
+        for (index, segment) in segments.enumerated() {
+            let blockIndex = Int(segment.startSeconds / blockSize)
+            blocks[blockIndex, default: []].append((index: index, segment: segment))
+        }
+        let sortedKeys = blocks.keys.sorted()
+        return sortedKeys.map { key in
+            TimeBlock(
+                id: key,
+                startSeconds: TimeInterval(key) * blockSize,
+                endSeconds: TimeInterval(key + 1) * blockSize,
+                segments: blocks[key]!
+            )
+        }
+    }
+}
+
+struct TimeBlockHeader: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: Theme.spacing8) {
+            Image(systemName: "clock")
+                .font(Theme.captionBoldFont)
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(Theme.sectionHeaderFont)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, Theme.spacing6)
+        .background(.ultraThinMaterial)
+    }
+}
+
+// MARK: - Speaker Chip
+
+struct SpeakerChip: View {
+    let name: String
+    let isSelected: Bool
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(name)
+                .font(Theme.captionBoldFont)
+                .padding(.horizontal, Theme.pillPaddingH)
+                .padding(.vertical, Theme.pillPaddingV)
+                .background(isSelected ? color : Color.clear)
+                .foregroundStyle(isSelected ? .white : .primary)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule().stroke(isSelected ? Color.clear : color.opacity(0.3), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Speaker Segment List
+
 struct SpeakerSegmentListView: View {
     let speakerSegments: [SpeakerSegment]
     let speakerNames: [String]
@@ -678,17 +757,24 @@ struct SpeakerSegmentListView: View {
     var onDisappearIndex: ((Int) -> Void)?
 
     var body: some View {
-        LazyVStack(alignment: .leading, spacing: Theme.spacing12) {
-            ForEach(Array(speakerSegments.enumerated()), id: \.offset) { index, segment in
-                SpeakerSegmentCard(
-                    segment: segment,
-                    speakerIndex: speakerNames.firstIndex(of: segment.speaker) ?? 0,
-                    isHighlighted: isSegmentActive(segment),
-                    onSeek: onSeek
-                )
-                .id(index)
-                .onAppear { onAppearIndex?(index) }
-                .onDisappear { onDisappearIndex?(index) }
+        let timeBlocks = TimeBlock.groupIntoTimeBlocks(speakerSegments)
+        LazyVStack(alignment: .leading, spacing: Theme.spacing12, pinnedViews: [.sectionHeaders]) {
+            ForEach(timeBlocks) { block in
+                Section {
+                    ForEach(block.segments, id: \.index) { item in
+                        SpeakerSegmentCard(
+                            segment: item.segment,
+                            speakerIndex: speakerNames.firstIndex(of: item.segment.speaker) ?? 0,
+                            isHighlighted: isSegmentActive(item.segment),
+                            onSeek: onSeek
+                        )
+                        .id(item.index)
+                        .onAppear { onAppearIndex?(item.index) }
+                        .onDisappear { onDisappearIndex?(item.index) }
+                    }
+                } header: {
+                    TimeBlockHeader(text: block.headerText)
+                }
             }
         }
         .padding()
@@ -784,6 +870,19 @@ struct TranscriptTabView: View {
 
     @State private var transcriptMode: TranscriptMode = .speakers
     @State private var visibleSegmentIndices: Set<Int> = []
+    @State private var selectedSpeaker: String? = nil
+    @State private var searchText: String = ""
+
+    private var filteredSpeakerSegments: [SpeakerSegment] {
+        var result = speakerSegments
+        if let speaker = selectedSpeaker {
+            result = result.filter { $0.speaker == speaker }
+        }
+        if !searchText.isEmpty {
+            result = result.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
+        }
+        return result
+    }
 
     private var activeSegmentIndex: Int? {
         if transcriptMode == .speakers {
@@ -815,16 +914,39 @@ struct TranscriptTabView: View {
                         description: Text("Tap the \u{22EF} menu and select Transcribe, or tap the waveform button in the toolbar.")
                     )
                 } else if !speakerSegments.isEmpty, let onSeek {
+                    // Search bar (shown in both modes)
+                    searchBar
+
+                    // Mode picker
                     transcriptModePicker
+
                     if transcriptMode == .speakers {
-                        SpeakerSegmentListView(
-                            speakerSegments: speakerSegments,
-                            speakerNames: speakerNames,
-                            onSeek: onSeek,
-                            currentTimestamp: currentTimestamp,
-                            onAppearIndex: { visibleSegmentIndices.insert($0) },
-                            onDisappearIndex: { visibleSegmentIndices.remove($0) }
-                        )
+                        // Speaker filter bar (only with 2+ speakers)
+                        if speakerNames.count >= 2 {
+                            speakerFilterBar
+                        }
+
+                        // Results count when searching
+                        if !searchText.isEmpty {
+                            Text("\(filteredSpeakerSegments.count) results")
+                                .font(Theme.captionFont)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal)
+                                .padding(.top, Theme.spacing4)
+                        }
+
+                        if filteredSpeakerSegments.isEmpty && !searchText.isEmpty {
+                            ContentUnavailableView.search(text: searchText)
+                        } else {
+                            SpeakerSegmentListView(
+                                speakerSegments: filteredSpeakerSegments,
+                                speakerNames: speakerNames,
+                                onSeek: onSeek,
+                                currentTimestamp: currentTimestamp,
+                                onAppearIndex: { visibleSegmentIndices.insert($0) },
+                                onDisappearIndex: { visibleSegmentIndices.remove($0) }
+                            )
+                        }
                     } else {
                         ChunkedTranscriptListView(
                             segments: segments,
@@ -890,6 +1012,8 @@ struct TranscriptTabView: View {
             }
             .onChange(of: transcriptMode) { _, _ in
                 visibleSegmentIndices.removeAll()
+                searchText = ""
+                selectedSpeaker = nil
             }
         }
     }
@@ -903,6 +1027,46 @@ struct TranscriptTabView: View {
         .pickerStyle(.segmented)
         .padding(.horizontal)
         .padding(.top, Theme.spacing8)
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: Theme.spacing8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search transcript...", text: $searchText)
+                .font(Theme.bodyFont)
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(Theme.spacing12)
+        .background(Color(UIColor.tertiarySystemFill))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal)
+        .padding(.top, Theme.spacing8)
+    }
+
+    private var speakerFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Theme.spacing8) {
+                SpeakerChip(name: "All", isSelected: selectedSpeaker == nil, color: .accentColor) {
+                    selectedSpeaker = nil
+                }
+                ForEach(Array(speakerNames.enumerated()), id: \.offset) { index, name in
+                    SpeakerChip(name: name, isSelected: selectedSpeaker == name, color: Theme.speakerColor(for: index)) {
+                        selectedSpeaker = name
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding(.vertical, Theme.spacing4)
     }
 
     private var transcribingContent: some View {
