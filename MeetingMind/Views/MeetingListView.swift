@@ -3,33 +3,83 @@ import SwiftData
 
 struct MeetingListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Meeting.date, order: .reverse) private var meetings: [Meeting]
+    @Environment(SubscriptionService.self) private var subscriptionService
+    @Query private var meetings: [Meeting]
     @State private var searchText = ""
     @State private var showRecording = false
+    @State private var navigationPath = NavigationPath()
 
-    var filteredMeetings: [Meeting] {
-        if searchText.isEmpty { return meetings }
-        return meetings.filter {
+    @AppStorage("meetingSortOrder") private var sortOrder = MeetingSortOrder.dateNewest.rawValue
+    @AppStorage("meetingGroupMode") private var groupMode = MeetingGroupMode.none.rawValue
+
+    private var currentSort: MeetingSortOrder {
+        MeetingSortOrder(rawValue: sortOrder) ?? .dateNewest
+    }
+
+    private var currentGroup: MeetingGroupMode {
+        MeetingGroupMode(rawValue: groupMode) ?? .none
+    }
+
+    private var sortedMeetings: [Meeting] {
+        let filtered = searchText.isEmpty ? meetings : meetings.filter {
             $0.title.localizedCaseInsensitiveContains(searchText) ||
             $0.transcriptText.localizedCaseInsensitiveContains(searchText)
         }
+        switch currentSort {
+        case .dateNewest: return filtered.sorted { $0.date > $1.date }
+        case .dateOldest: return filtered.sorted { $0.date < $1.date }
+        case .nameAZ: return filtered.sorted { $0.title.localizedCompare($1.title) == .orderedAscending }
+        case .nameZA: return filtered.sorted { $0.title.localizedCompare($1.title) == .orderedDescending }
+        }
+    }
+
+    private var groupedMeetings: [(key: String, meetings: [Meeting])] {
+        guard currentGroup == .category else {
+            return [(key: "", meetings: sortedMeetings)]
+        }
+        let grouped = Dictionary(grouping: sortedMeetings) { $0.categoryName ?? "Uncategorized" }
+        return grouped.map { (key: $0.key, meetings: $0.value) }.sorted { $0.key < $1.key }
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             List {
-                ForEach(filteredMeetings) { meeting in
-                    NavigationLink(value: meeting) {
-                        MeetingRowView(meeting: meeting)
+                ForEach(groupedMeetings, id: \.key) { group in
+                    Section {
+                        ForEach(group.meetings) { meeting in
+                            NavigationLink(value: meeting) {
+                                MeetingRowView(meeting: meeting)
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    deleteMeeting(meeting)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                            .swipeActions(edge: .leading) {
+                                if meeting.status == .failed || (meeting.status == .recording && meeting.duration == 0) {
+                                    if meeting.audioFileURL != nil {
+                                        Button {
+                                            meeting.status = .transcribing
+                                        } label: {
+                                            Label("Retry", systemImage: "arrow.clockwise")
+                                        }
+                                        .tint(Theme.statusTranscribing)
+                                    }
+                                }
+                            }
+                        }
+                    } header: {
+                        if currentGroup != .none {
+                            Text(group.key)
+                        }
                     }
+                    .headerProminence(.increased)
                 }
-                .onDelete(perform: deleteMeetings)
             }
             .navigationTitle("MeetingMind")
             .searchable(text: $searchText, prompt: "Search meetings")
-            .navigationDestination(for: Meeting.self) { meeting in
-                MeetingDetailView(meeting: meeting)
-            }
             .overlay {
                 if meetings.isEmpty {
                     ContentUnavailableView(
@@ -48,6 +98,41 @@ struct MeetingListView: View {
                     }
                 }
 
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Section("Sort By") {
+                            ForEach(MeetingSortOrder.allCases, id: \.self) { option in
+                                Button {
+                                    sortOrder = option.rawValue
+                                } label: {
+                                    HStack {
+                                        Text(option.rawValue)
+                                        if currentSort == option {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Section("Group By") {
+                            ForEach(MeetingGroupMode.allCases, id: \.self) { option in
+                                Button {
+                                    groupMode = option.rawValue
+                                } label: {
+                                    HStack {
+                                        Text(option.rawValue)
+                                        if currentGroup == option {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showRecording = true
@@ -59,16 +144,47 @@ struct MeetingListView: View {
             .fullScreenCover(isPresented: $showRecording) {
                 RecordingView()
             }
+            .navigationDestination(for: Meeting.self) { meeting in
+                MeetingDetailView(meeting: meeting)
+            }
+            .onChange(of: showRecording) { _, isShowing in
+                if !isShowing {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        if let newest = meetings.first(where: { $0.status == .transcribing }) {
+                            navigationPath.append(newest)
+                        }
+                    }
+                }
+            }
+            .onAppear {
+                recoverStuckMeetings()
+            }
         }
     }
 
-    private func deleteMeetings(at offsets: IndexSet) {
-        for index in offsets {
-            let meeting = filteredMeetings[index]
-            if let url = meeting.audioFileURL {
-                try? FileManager.default.removeItem(at: url)
+    private func recoverStuckMeetings() {
+        for meeting in meetings {
+            if meeting.status == .recording {
+                if let url = meeting.audioFileURL,
+                   FileManager.default.fileExists(atPath: url.path),
+                   let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+                   let size = attrs[.size] as? UInt64, size > 0 {
+                    // Audio file exists and is non-empty — recover as complete so user can transcribe
+                    meeting.status = .complete
+                } else {
+                    meeting.status = .failed
+                }
             }
-            modelContext.delete(meeting)
+            if meeting.status == .analyzing || meeting.status == .diarizing {
+                meeting.status = meeting.transcriptText.isEmpty ? .failed : .complete
+            }
         }
+    }
+
+    private func deleteMeeting(_ meeting: Meeting) {
+        if let url = meeting.audioFileURL {
+            try? FileManager.default.removeItem(at: url)
+        }
+        modelContext.delete(meeting)
     }
 }
