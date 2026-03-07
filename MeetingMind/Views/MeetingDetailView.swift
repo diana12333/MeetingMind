@@ -612,47 +612,103 @@ struct TranscriptTabView: View {
     let isTranscribing: Bool
     let partialText: String
     var segments: [TranscriptSegment] = []
+    var speakerSegments: [SpeakerSegment] = []
+    var speakerNames: [String] = []
     var onSeek: ((TimeInterval) -> Void)?
+    var scrollToTimestamp: TimeInterval?
+    var currentTimestamp: TimeInterval = 0
 
     var body: some View {
-        ScrollView {
-            if isTranscribing {
-                VStack(spacing: 12) {
-                    ProgressView()
-                    Text("Transcribing...")
-                        .foregroundStyle(.secondary)
-                    if !partialText.isEmpty {
-                        Text(partialText)
-                            .padding()
+        ScrollViewReader { proxy in
+            ScrollView {
+                if isTranscribing {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("Transcribing...")
                             .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.top, 40)
-            } else if transcriptText.isEmpty {
-                ContentUnavailableView(
-                    "No Transcript",
-                    systemImage: "text.bubble",
-                    description: Text("Tap the ⋯ menu and select Transcribe, or tap the waveform button in the toolbar.")
-                )
-            } else if !segments.isEmpty, let onSeek {
-                // Chunked transcript with timestamp headers
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    let chunks = TranscriptionService.chunkSegments(segments)
-                    ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
-                        VStack(alignment: .leading, spacing: 4) {
-                            TimestampBadge(seconds: Int(chunk.timestamp), onTap: onSeek)
-                            Text(chunk.text)
-                                .textSelection(.enabled)
+                        if !partialText.isEmpty {
+                            Text(partialText)
+                                .padding()
+                                .foregroundStyle(.secondary)
                         }
                     }
-                }
-                .padding()
-            } else {
-                Text(transcriptText)
+                    .padding(.top, 40)
+                } else if transcriptText.isEmpty {
+                    ContentUnavailableView(
+                        "No Transcript",
+                        systemImage: "text.bubble",
+                        description: Text("Tap the \u{22EF} menu and select Transcribe, or tap the waveform button in the toolbar.")
+                    )
+                } else if !speakerSegments.isEmpty, let onSeek {
+                    // Speaker-labeled transcript
+                    LazyVStack(alignment: .leading, spacing: Theme.spacing12) {
+                        ForEach(Array(speakerSegments.enumerated()), id: \.offset) { index, segment in
+                            let speakerIndex = speakerNames.firstIndex(of: segment.speaker) ?? 0
+                            let isHighlighted = isSegmentActive(segment)
+
+                            VStack(alignment: .leading, spacing: Theme.spacing4) {
+                                HStack(spacing: Theme.spacing8) {
+                                    Text(segment.speaker)
+                                        .font(Theme.captionBoldFont)
+                                        .foregroundStyle(Theme.speakerColor(for: speakerIndex))
+                                    TimestampBadge(seconds: Int(segment.startSeconds), onTap: onSeek)
+                                }
+
+                                Text(segment.text)
+                                    .font(Theme.bodyFont)
+                                    .textSelection(.enabled)
+                            }
+                            .padding(Theme.cardPadding)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(isHighlighted ? Theme.subtleAccent : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+                            .overlay(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: Theme.accentBarCornerRadius)
+                                    .fill(Theme.speakerColor(for: speakerIndex))
+                                    .frame(width: Theme.accentBarWidth)
+                                    .padding(.vertical, Theme.spacing4)
+                            }
+                            .id(index)
+                        }
+                    }
                     .padding()
-                    .textSelection(.enabled)
+                } else if !segments.isEmpty, let onSeek {
+                    // Chunked transcript with timestamp headers (fallback)
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        let chunks = TranscriptionService.chunkSegments(segments)
+                        ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
+                            VStack(alignment: .leading, spacing: 4) {
+                                TimestampBadge(seconds: Int(chunk.timestamp), onTap: onSeek)
+                                Text(chunk.text)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                    }
+                    .padding()
+                } else {
+                    Text(transcriptText)
+                        .padding()
+                        .textSelection(.enabled)
+                }
+            }
+            .onChange(of: scrollToTimestamp) { _, newValue in
+                guard let target = newValue else { return }
+                let targetIndex = speakerSegments.firstIndex { seg in
+                    target >= seg.startSeconds && target < seg.endSeconds
+                } ?? speakerSegments.firstIndex { seg in
+                    seg.startSeconds >= target
+                }
+                if let idx = targetIndex {
+                    withAnimation {
+                        proxy.scrollTo(idx, anchor: .center)
+                    }
+                }
             }
         }
+    }
+
+    private func isSegmentActive(_ segment: SpeakerSegment) -> Bool {
+        currentTimestamp >= segment.startSeconds && currentTimestamp < segment.endSeconds
     }
 }
 
