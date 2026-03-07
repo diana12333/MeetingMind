@@ -298,7 +298,8 @@ struct MeetingDetailView: View {
                 onSeek: seekHandler,
                 scrollToTimestamp: coordinator.scrollToTimestamp,
                 currentTimestamp: coordinator.currentTimestamp,
-                isPlaying: playerService.isPlaying
+                isPlaying: playerService.isPlaying,
+                onScrollComplete: { coordinator.clearScrollTarget() }
             )
             .tag(0)
 
@@ -759,6 +760,7 @@ struct JumpToNowPlayingButton: View {
             .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Jump to now playing segment")
     }
 }
 
@@ -778,6 +780,7 @@ struct TranscriptTabView: View {
     var scrollToTimestamp: TimeInterval?
     var currentTimestamp: TimeInterval = 0
     var isPlaying: Bool = false
+    var onScrollComplete: (() -> Void)?
 
     @State private var transcriptMode: TranscriptMode = .speakers
     @State private var visibleSegmentIndices: Set<Int> = []
@@ -873,8 +876,8 @@ struct TranscriptTabView: View {
                         }
                     }
                 } else if !segments.isEmpty {
-                    let chunks = TranscriptionService.chunkSegments(segments)
-                    let targetIndex = chunks.lastIndex { chunk in
+                    let cachedChunks = TranscriptionService.chunkSegments(segments)
+                    let targetIndex = cachedChunks.lastIndex { chunk in
                         target >= chunk.timestamp
                     }
                     if let idx = targetIndex {
@@ -883,6 +886,7 @@ struct TranscriptTabView: View {
                         }
                     }
                 }
+                onScrollComplete?()
             }
             .onChange(of: transcriptMode) { _, _ in
                 visibleSegmentIndices.removeAll()
