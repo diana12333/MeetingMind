@@ -176,45 +176,6 @@ struct MeetingListView: View {
 
     // MARK: - Subviews
 
-    private var meetingList: some View {
-        List {
-            ForEach(filteredMeetings) { meeting in
-                NavigationLink(value: meeting) {
-                    MeetingRowView(meeting: meeting)
-                }
-                .listRowInsets(EdgeInsets(
-                    top: Theme.spacing4,
-                    leading: Theme.spacing16,
-                    bottom: Theme.spacing4,
-                    trailing: Theme.spacing16
-                ))
-            }
-            .onDelete(perform: deleteMeetings)
-        }
-        .overlay {
-            if meetings.isEmpty {
-                emptyStateView
-            }
-        }
-    }
-
-    private var emptyStateView: some View {
-        ContentUnavailableView {
-            Label("No Meetings", systemImage: "waveform.and.mic")
-                .foregroundStyle(Theme.teal600)
-        } description: {
-            Text("Tap the mic button to record your first meeting.")
-        } actions: {
-            Button {
-                showRecording = true
-            } label: {
-                Label("Record Meeting", systemImage: "mic.fill")
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Theme.teal600)
-        }
-    }
-
     private var floatingRecordButton: some View {
         Button {
             showRecording = true

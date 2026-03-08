@@ -26,6 +26,7 @@ enum Theme {
     static let badgeFont: Font = .system(.caption2, design: .rounded, weight: .semibold)
     static let sectionHeaderFont: Font = .system(.subheadline, design: .rounded, weight: .bold)
     static let timerFont: Font = .system(size: 64, weight: .thin, design: .rounded)
+    static let timerMonoFont: Font = .system(size: 64, weight: .thin, design: .monospaced)
 
     // MARK: - Palette
 
