@@ -45,6 +45,16 @@ final class AudioPlayerService {
         timer?.invalidate()
     }
 
+    func stop() {
+        audioPlayer?.stop()
+        audioPlayer?.currentTime = 0
+        isPlaying = false
+        currentTime = 0
+        timer?.invalidate()
+        timer = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
     func seek(to time: TimeInterval) {
         audioPlayer?.currentTime = time
         currentTime = time
