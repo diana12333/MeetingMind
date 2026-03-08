@@ -45,9 +45,7 @@ struct MeetingRowView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
 
-                    Text(formatDuration(meeting.duration))
-                        .font(Theme.captionFont)
-                        .foregroundStyle(.secondary)
+                    durationLabel
                 }
             }
 
@@ -56,6 +54,15 @@ struct MeetingRowView: View {
             StatusBadge(status: meeting.status)
         }
         .padding(.vertical, Theme.spacing6)
+    }
+
+    private var durationLabel: some View {
+        HStack(spacing: Theme.spacing4) {
+            Image(systemName: "clock")
+            Text(formatDuration(meeting.duration))
+        }
+        .font(Theme.captionFont)
+        .foregroundStyle(.secondary)
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {
@@ -71,7 +78,7 @@ struct StatusBadge: View {
     var body: some View {
         HStack(spacing: Theme.spacing4) {
             Circle()
-                .fill(status.color)
+                .fill(status.themeColor)
                 .frame(width: 6, height: 6)
 
             Text(status.label)
@@ -79,8 +86,8 @@ struct StatusBadge: View {
         }
         .padding(.horizontal, Theme.spacing8)
         .padding(.vertical, Theme.spacing4)
-        .background(status.color.opacity(Theme.badgeBackgroundOpacity))
-        .foregroundStyle(status.color)
+        .background(status.themeColor.opacity(Theme.badgeBackgroundOpacity))
+        .foregroundStyle(status.themeColor)
         .clipShape(Capsule())
     }
 }
@@ -97,7 +104,7 @@ extension MeetingStatus {
         }
     }
 
-    var color: Color {
+    var themeColor: Color {
         switch self {
         case .recording: Theme.statusRecording
         case .transcribing: Theme.statusTranscribing
@@ -106,5 +113,9 @@ extension MeetingStatus {
         case .complete: Theme.statusComplete
         case .failed: Theme.statusFailed
         }
+    }
+
+    var color: Color {
+        themeColor
     }
 }
