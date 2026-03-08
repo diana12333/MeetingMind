@@ -11,13 +11,13 @@ struct ActionItemRowView: View {
                 .foregroundStyle(item.type.iconColor)
                 .frame(width: 24)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Theme.spacing4) {
                 Text(item.title)
-                    .font(.subheadline)
+                    .font(Theme.subheadlineFont)
 
                 if let dueDate = item.dueDate {
                     Text(dueDate, style: .date)
-                        .font(.caption)
+                        .font(Theme.captionFont)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -26,7 +26,7 @@ struct ActionItemRowView: View {
 
             if item.isExported {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Theme.successCheck)
             } else {
                 Button("Export", action: onExport)
                     .buttonStyle(.bordered)
@@ -47,9 +47,9 @@ extension ActionItemType {
 
     var iconColor: Color {
         switch self {
-        case .calendarEvent: .blue
-        case .reminder: .orange
-        case .task: .purple
+        case .calendarEvent: Theme.actionCalendar
+        case .reminder: Theme.actionReminder
+        case .task: Theme.actionTask
         }
     }
 }

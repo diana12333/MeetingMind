@@ -36,8 +36,8 @@ struct SettingsView: View {
 
                 if isSaved {
                     Text("API key saved securely in Keychain")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                        .font(Theme.captionFont)
+                        .foregroundStyle(Theme.successCheck)
                 }
             }
 
