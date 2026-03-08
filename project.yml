@@ -50,3 +50,7 @@ targets:
         NSRemindersUsageDescription: "MeetingMind can create reminders for your action items."
         UIBackgroundModes:
           - audio
+        UIApplicationShortcutItems:
+          - UIApplicationShortcutItemType: "com.meetingmind.app.quick-record"
+            UIApplicationShortcutItemTitle: "Record Meeting"
+            UIApplicationShortcutItemIconType: "UIApplicationShortcutIconTypeCapturePhoto"
