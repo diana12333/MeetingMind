@@ -64,11 +64,6 @@ struct MeetingDetailView: View {
         VStack(spacing: 0) {
             if meeting.audioFileURL != nil {
                 AudioPlayerBar(player: playerService)
-                    .padding(Theme.cardPadding)
-                    .background(Theme.surfaceTeal)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
-                    .padding(.horizontal)
-                    .padding(.top, Theme.spacing8)
             }
 
             if !meeting.speakerSegments.isEmpty {
@@ -571,50 +566,135 @@ struct AudioPlayerBar: View {
     var player: AudioPlayerService
 
     var body: some View {
-        VStack(spacing: 8) {
-            Slider(
-                value: Binding(
-                    get: { player.currentTime },
-                    set: { player.seek(to: $0) }
-                ),
-                in: 0...max(player.duration, 1)
-            )
+        VStack(spacing: Theme.spacing12) {
+            progressBar
+            controlsRow
+        }
+        .padding(Theme.cardPadding)
+        .background(Theme.surfaceTeal)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+        .padding(.horizontal)
+        .padding(.top, Theme.spacing8)
+    }
 
-            HStack {
-                Text(formatTime(player.currentTime))
-                    .font(.caption2)
-                    .monospacedDigit()
+    // MARK: - Progress Bar
 
-                Spacer()
+    private var progressBar: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let progress = player.duration > 0 ? player.currentTime / player.duration : 0
+            let fillWidth = width * progress
 
-                Button {
-                    if player.isPlaying { player.pause() } else { player.play() }
-                } label: {
-                    Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.title)
-                }
+            ZStack(alignment: .leading) {
+                // Track
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(UIColor.tertiarySystemFill))
+                    .frame(height: 4)
 
-                Spacer()
+                // Filled portion
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Theme.teal600)
+                    .frame(width: max(0, fillWidth), height: 4)
 
-                Menu {
-                    ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { rate in
-                        Button("\(rate, specifier: "%.2g")x") {
-                            player.setRate(Float(rate))
-                        }
-                    }
-                } label: {
-                    Text("\(player.playbackRate, specifier: "%.2g")x")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.fill)
-                        .clipShape(Capsule())
-                }
-
-                Text(formatTime(player.duration))
-                    .font(.caption2)
-                    .monospacedDigit()
+                // Thumb knob
+                Circle()
+                    .fill(Theme.teal600)
+                    .frame(width: 14, height: 14)
+                    .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
+                    .offset(x: max(0, fillWidth - 7))
             }
+            .frame(height: 14)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle().size(width: width, height: 44))
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let ratio = max(0, min(1, value.location.x / width))
+                        player.seek(to: ratio * player.duration)
+                    }
+            )
+            .accessibilityValue("\(formatTime(player.currentTime)) of \(formatTime(player.duration))")
+        }
+        .frame(height: 14)
+    }
+
+    // MARK: - Controls Row
+
+    private var controlsRow: some View {
+        HStack(spacing: Theme.spacing16) {
+            currentTimeLabel
+            Spacer()
+            skipBackButton
+            playPauseButton
+            skipForwardButton
+            Spacer()
+            speedPill
+            durationLabel
+        }
+    }
+
+    private var currentTimeLabel: some View {
+        Text(formatTime(player.currentTime))
+            .font(Theme.captionFont.monospacedDigit())
+            .foregroundStyle(.secondary)
+    }
+
+    private var durationLabel: some View {
+        Text(formatTime(player.duration))
+            .font(Theme.captionFont.monospacedDigit())
+            .foregroundStyle(.secondary)
+    }
+
+    private var skipBackButton: some View {
+        Button {
+            player.seek(to: max(0, player.currentTime - 15))
+        } label: {
+            Image(systemName: "gobackward.15")
+                .font(.system(size: 20))
+                .foregroundStyle(Theme.teal600)
+        }
+        .frame(width: 44, height: 44)
+        .accessibilityLabel("Skip back 15 seconds")
+    }
+
+    private var playPauseButton: some View {
+        Button {
+            if player.isPlaying { player.pause() } else { player.play() }
+        } label: {
+            Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                .font(.system(size: 38))
+                .foregroundStyle(Theme.teal600)
+        }
+        .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+    }
+
+    private var skipForwardButton: some View {
+        Button {
+            player.seek(to: min(player.duration, player.currentTime + 30))
+        } label: {
+            Image(systemName: "goforward.30")
+                .font(.system(size: 20))
+                .foregroundStyle(Theme.teal600)
+        }
+        .frame(width: 44, height: 44)
+        .accessibilityLabel("Skip forward 30 seconds")
+    }
+
+    private var speedPill: some View {
+        Menu {
+            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { rate in
+                Button("\(rate, specifier: "%.2g")x") {
+                    player.setRate(Float(rate))
+                }
+            }
+        } label: {
+            Text("\(player.playbackRate, specifier: "%.2g")x")
+                .font(Theme.captionBoldFont)
+                .foregroundStyle(Theme.teal600)
+                .padding(.horizontal, Theme.pillPaddingH)
+                .padding(.vertical, Theme.pillPaddingV)
+                .background(Theme.teal600.opacity(Theme.badgeBackgroundOpacity))
+                .clipShape(Capsule())
         }
     }
 
