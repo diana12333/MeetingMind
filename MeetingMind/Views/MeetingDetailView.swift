@@ -278,6 +278,9 @@ struct MeetingDetailView: View {
                 transcribeAudio()
             }
         }
+        .onDisappear {
+            playerService.stop()
+        }
         .onChange(of: playerService.currentTime) { _, newTime in
             coordinator.updatePlaybackPosition(newTime)
         }
