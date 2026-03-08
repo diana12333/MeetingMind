@@ -20,6 +20,7 @@
 		7ACF46A653FD74819AE99A5A /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */; };
 		8F344A6DDD4BBCC9557BC3C9 /* ActionItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60F6D6FD20665BBE68D7280C /* ActionItemType.swift */; };
 		9E856EC7E79625F40EDD20E6 /* MeetingRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */; };
+		B2F56EB3012F9F31BA40D488 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04722F7AE9F53D0B9D92BD71 /* Theme.swift */; };
 		B4A2638FA74330C43D88589E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AB14326952753AE50B5157 /* ContentView.swift */; };
 		B773444DE6AB30D1F905508D /* AIAnalysisResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */; };
 		B8D338D2D5BA49CADA72CE74 /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */; };
@@ -30,6 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04722F7AE9F53D0B9D92BD71 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		3E54E25A6C0017D872D1587A /* MeetingMindApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMindApp.swift; sourceTree = "<group>"; };
 		41AB14326952753AE50B5157 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		60F6D6FD20665BBE68D7280C /* ActionItemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItemType.swift; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 				B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */,
 				65DC678CB54A36B558CE03D2 /* RecordingView.swift */,
 				6A56BDA44D6761607AC66B6E /* SettingsView.swift */,
+				04722F7AE9F53D0B9D92BD71 /* Theme.swift */,
 				C5E623AAB98D3679555A15A3 /* WaveformView.swift */,
 			);
 			path = Views;
@@ -207,6 +210,7 @@
 				60896929CD6644E59D2FA2E3 /* MeetingStatus.swift in Sources */,
 				D24BA91AAF286499B529298D /* RecordingView.swift in Sources */,
 				2E45A9E32DFDD45718437E82 /* SettingsView.swift in Sources */,
+				B2F56EB3012F9F31BA40D488 /* Theme.swift in Sources */,
 				7ACF46A653FD74819AE99A5A /* TranscriptionService.swift in Sources */,
 				CDA3BB99B0604BB5B6BBF452 /* WaveformView.swift in Sources */,
 			);

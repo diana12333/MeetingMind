@@ -4,6 +4,7 @@ import SwiftData
 struct MeetingListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(SubscriptionService.self) private var subscriptionService
+    @Environment(AppState.self) private var appState
     @Query private var meetings: [Meeting]
     @State private var searchText = ""
     @State private var showRecording = false
@@ -43,52 +44,56 @@ struct MeetingListView: View {
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            List {
-                ForEach(groupedMeetings, id: \.key) { group in
-                    Section {
-                        ForEach(group.meetings) { meeting in
-                            NavigationLink(value: meeting) {
-                                MeetingRowView(meeting: meeting)
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    deleteMeeting(meeting)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
+            ZStack(alignment: .bottom) {
+                List {
+                    ForEach(groupedMeetings, id: \.key) { group in
+                        Section {
+                            ForEach(group.meetings) { meeting in
+                                NavigationLink(value: meeting) {
+                                    MeetingRowView(meeting: meeting)
                                 }
-                            }
-                            .swipeActions(edge: .leading) {
-                                if meeting.status == .failed || (meeting.status == .recording && meeting.duration == 0) {
-                                    if meeting.audioFileURL != nil {
-                                        Button {
-                                            meeting.status = .transcribing
-                                        } label: {
-                                            Label("Retry", systemImage: "arrow.clockwise")
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        deleteMeeting(meeting)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                                .swipeActions(edge: .leading) {
+                                    if meeting.status == .failed || (meeting.status == .recording && meeting.duration == 0) {
+                                        if meeting.audioFileURL != nil {
+                                            Button {
+                                                meeting.status = .transcribing
+                                            } label: {
+                                                Label("Retry", systemImage: "arrow.clockwise")
+                                            }
+                                            .tint(Theme.statusTranscribing)
                                         }
-                                        .tint(Theme.statusTranscribing)
                                     }
                                 }
                             }
+                        } header: {
+                            if currentGroup != .none {
+                                Text(group.key)
+                            }
                         }
-                    } header: {
-                        if currentGroup != .none {
-                            Text(group.key)
-                        }
+                        .headerProminence(.increased)
                     }
-                    .headerProminence(.increased)
                 }
+                .overlay {
+                    if meetings.isEmpty {
+                        ContentUnavailableView(
+                            "No Meetings",
+                            systemImage: "mic.badge.plus",
+                            description: Text("Tap + to record your first meeting.")
+                        )
+                    }
+                }
+
+                floatingRecordButton
             }
             .navigationTitle("MeetingMind")
             .searchable(text: $searchText, prompt: "Search meetings")
-            .overlay {
-                if meetings.isEmpty {
-                    ContentUnavailableView(
-                        "No Meetings",
-                        systemImage: "mic.badge.plus",
-                        description: Text("Tap + to record your first meeting.")
-                    )
-                }
-            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     NavigationLink {
@@ -158,7 +163,42 @@ struct MeetingListView: View {
             }
             .onAppear {
                 recoverStuckMeetings()
+                handleQuickRecordShortcut()
             }
+            .onChange(of: appState.shouldStartRecording) { _, shouldStart in
+                if shouldStart {
+                    showRecording = true
+                    appState.shouldStartRecording = false
+                }
+            }
+        }
+    }
+
+    // MARK: - Subviews
+
+    private var floatingRecordButton: some View {
+        Button {
+            showRecording = true
+        } label: {
+            Image(systemName: "mic.fill")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 60, height: 60)
+                .background(Theme.teal600)
+                .clipShape(Circle())
+                .shadow(color: Theme.teal600.opacity(0.3), radius: 8, x: 0, y: 4)
+        }
+        .padding(.bottom, Theme.spacing32)
+        .accessibilityLabel("Record new meeting")
+        .accessibilityHint("Double tap to start recording a new meeting")
+    }
+
+    // MARK: - Actions
+
+    private func handleQuickRecordShortcut() {
+        if appState.shouldStartRecording {
+            showRecording = true
+            appState.shouldStartRecording = false
         }
     }
 
@@ -169,7 +209,6 @@ struct MeetingListView: View {
                    FileManager.default.fileExists(atPath: url.path),
                    let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
                    let size = attrs[.size] as? UInt64, size > 0 {
-                    // Audio file exists and is non-empty — recover as complete so user can transcribe
                     meeting.status = .complete
                 } else {
                     meeting.status = .failed
