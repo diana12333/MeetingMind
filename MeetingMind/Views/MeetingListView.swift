@@ -35,11 +35,23 @@ struct MeetingListView: View {
     }
 
     private var groupedMeetings: [(key: String, meetings: [Meeting])] {
-        guard currentGroup == .category else {
+        switch currentGroup {
+        case .none:
             return [(key: "", meetings: sortedMeetings)]
+        case .category:
+            let grouped = Dictionary(grouping: sortedMeetings) { $0.categoryName ?? "Uncategorized" }
+            return grouped.map { (key: $0.key, meetings: $0.value) }.sorted { $0.key < $1.key }
+        case .series:
+            let withSeries = sortedMeetings.filter { $0.series != nil }
+            let withoutSeries = sortedMeetings.filter { $0.series == nil }
+            var groups: [(key: String, meetings: [Meeting])] = []
+            let seriesGrouped = Dictionary(grouping: withSeries) { $0.series?.name ?? "" }
+            groups += seriesGrouped.map { (key: $0.key, meetings: $0.value) }.sorted { $0.key < $1.key }
+            if !withoutSeries.isEmpty {
+                groups.append((key: "Ungrouped", meetings: withoutSeries))
+            }
+            return groups
         }
-        let grouped = Dictionary(grouping: sortedMeetings) { $0.categoryName ?? "Uncategorized" }
-        return grouped.map { (key: $0.key, meetings: $0.value) }.sorted { $0.key < $1.key }
     }
 
     var body: some View {
@@ -104,6 +116,14 @@ struct MeetingListView: View {
                 }
 
                 ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        AnalyticsDashboardView()
+                    } label: {
+                        Image(systemName: "chart.bar.xaxis.ascending")
+                    }
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Section("Sort By") {
                             ForEach(MeetingSortOrder.allCases, id: \.self) { option in
@@ -151,6 +171,9 @@ struct MeetingListView: View {
             }
             .navigationDestination(for: Meeting.self) { meeting in
                 MeetingDetailView(meeting: meeting)
+            }
+            .navigationDestination(for: MeetingSeries.self) { series in
+                SeriesDetailView(series: series)
             }
             .onChange(of: showRecording) { _, isShowing in
                 if !isShowing {
