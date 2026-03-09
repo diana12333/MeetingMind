@@ -12,62 +12,18 @@ struct RecordingView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 40) {
+            VStack(spacing: Theme.spacing40) {
                 Spacer()
 
-                Text(formatTime(recorder.elapsedTime))
-                    .font(.system(size: 64, weight: .thin, design: .monospaced))
-                    .foregroundStyle(recorder.isRecording ? .red : .primary)
+                statusLabel
+                timerDisplay
 
                 WaveformView(levels: recorder.audioLevels)
                     .padding(.horizontal)
 
                 Spacer()
 
-                HStack(spacing: 40) {
-                    Button {
-                        cancelRecording()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(.gray)
-                    }
-
-                    Button {
-                        if recorder.isRecording && !recorder.isPaused {
-                            recorder.pauseRecording()
-                        } else if recorder.isPaused {
-                            recorder.resumeRecording()
-                        } else {
-                            startRecording()
-                        }
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 80, height: 80)
-
-                            if recorder.isRecording && !recorder.isPaused {
-                                Image(systemName: "pause.fill")
-                                    .font(.system(size: 30))
-                                    .foregroundStyle(.white)
-                            } else {
-                                Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 30, height: 30)
-                            }
-                        }
-                    }
-
-                    Button {
-                        stopRecording()
-                    } label: {
-                        Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(recorder.isRecording ? .red : .gray)
-                    }
-                    .disabled(!recorder.isRecording)
-                }
+                controlButtons
 
                 Spacer()
             }
@@ -85,6 +41,96 @@ struct RecordingView: View {
             }
         }
     }
+
+    // MARK: - Subviews
+
+    private var statusLabel: some View {
+        Text(statusText)
+            .font(Theme.captionBoldFont)
+            .textCase(.uppercase)
+            .tracking(2)
+            .foregroundStyle(recorder.isRecording ? Theme.statusRecording : .secondary)
+    }
+
+    private var statusText: String {
+        if recorder.isRecording && !recorder.isPaused {
+            return "Recording"
+        } else if recorder.isPaused {
+            return "Paused"
+        } else {
+            return "Ready"
+        }
+    }
+
+    private var timerDisplay: some View {
+        Text(formatTime(recorder.elapsedTime))
+            .font(Theme.timerMonoFont)
+            .foregroundStyle(recorder.isRecording ? Theme.statusRecording : .primary)
+    }
+
+    private var controlButtons: some View {
+        HStack(spacing: Theme.spacing40) {
+            cancelButton
+            recordButton
+            stopButton
+        }
+    }
+
+    private var cancelButton: some View {
+        Button {
+            cancelRecording()
+        } label: {
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(Theme.inactiveControl)
+        }
+    }
+
+    private var recordButton: some View {
+        Button {
+            if recorder.isRecording && !recorder.isPaused {
+                recorder.pauseRecording()
+            } else if recorder.isPaused {
+                recorder.resumeRecording()
+            } else {
+                startRecording()
+            }
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(Theme.statusRecording)
+                    .frame(width: 80, height: 80)
+
+                if recorder.isRecording && !recorder.isPaused {
+                    Image(systemName: "pause.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(.white)
+                } else {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 30, height: 30)
+                }
+            }
+            .scaleEffect(recorder.isRecording && !recorder.isPaused ? 1.06 : 1.0)
+            .animation(
+                .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
+                value: recorder.isRecording && !recorder.isPaused
+            )
+        }
+    }
+
+    private var stopButton: some View {
+        Button {
+            stopRecording()
+        } label: {
+            Image(systemName: "stop.circle.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(recorder.isRecording ? Theme.statusRecording : Theme.inactiveControl)
+        }
+        .disabled(!recorder.isRecording)
+    }
+
+    // MARK: - Actions
 
     private func startRecording() {
         let newMeeting = Meeting(title: "Meeting \(Date().formatted(date: .abbreviated, time: .shortened))")
