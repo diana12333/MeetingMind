@@ -7,6 +7,7 @@ import UIKit
 @Observable
 final class AppState {
     var shouldStartRecording = false
+    var deepLinkMeetingId: UUID?
 }
 
 /// Global app state instance, accessible from delegates and views.
@@ -61,7 +62,7 @@ struct MeetingMindApp: App {
 
     init() {
         do {
-            let schema = Schema([Meeting.self, ActionItem.self])
+            let schema = Schema([Meeting.self, ActionItem.self, MeetingSeries.self])
             let config = ModelConfiguration(isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [config])
         } catch {
@@ -73,7 +74,20 @@ struct MeetingMindApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .onOpenURL { url in
+                    handleDeepLink(url)
+                }
         }
         .modelContainer(container)
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "meetingmind",
+              url.host == "meeting",
+              let idString = url.pathComponents.dropFirst().first,
+              let meetingId = UUID(uuidString: idString) else {
+            return
+        }
+        appState.deepLinkMeetingId = meetingId
     }
 }

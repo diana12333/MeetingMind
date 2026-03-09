@@ -22,9 +22,21 @@ final class Meeting {
     var speakerSegmentsJSON: String?
     var executiveBriefJSON: String?
 
+    // Template & chat (optional → lightweight migration)
+    var templateId: String?
+    var chatHistoryJSON: String?
+
     // Notion export (optional → lightweight migration)
     var notionPageId: String?
     var notionPageUrl: String?
+
+    // Slack & Teams sharing (optional → lightweight migration)
+    var isSharedToSlack: Bool?
+    var isSharedToTeams: Bool?
+
+    // Meeting series (optional → lightweight migration)
+    var series: MeetingSeries?
+    var seriesOrder: Int?
 
     @Relationship(deleteRule: .cascade, inverse: \ActionItem.meeting)
     var actionItems: [ActionItem]
@@ -134,6 +146,21 @@ final class Meeting {
                 return
             }
             executiveBriefJSON = String(data: data, encoding: .utf8)
+        }
+    }
+
+    var chatHistory: [ChatMessage] {
+        get {
+            guard let json = chatHistoryJSON,
+                  let data = json.data(using: .utf8) else { return [] }
+            return (try? JSONDecoder().decode([ChatMessage].self, from: data)) ?? []
+        }
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else {
+                chatHistoryJSON = nil
+                return
+            }
+            chatHistoryJSON = String(data: data, encoding: .utf8)
         }
     }
 }

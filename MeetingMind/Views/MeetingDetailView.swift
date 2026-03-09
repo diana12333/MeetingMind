@@ -28,9 +28,15 @@ struct MeetingDetailView: View {
     @State private var notionService = NotionService()
     @State private var showNotionSuccess = false
     @State private var notionExportURL: String?
+    @State private var slackService = SlackService()
+    @State private var teamsService = TeamsService()
+    @State private var showSlackSuccess = false
+    @State private var showTeamsSuccess = false
+    @State private var showSeriesPicker = false
+    @Query private var allSeries: [MeetingSeries]
 
     private var isProcessing: Bool {
-        transcriptionService.isTranscribing || claudeService?.isAnalyzing == true || notionService.isExporting
+        transcriptionService.isTranscribing || claudeService?.isAnalyzing == true || notionService.isExporting || slackService.isExporting || teamsService.isExporting
     }
 
     private var shareText: String {
@@ -57,167 +63,17 @@ struct MeetingDetailView: View {
             ("Summary", "doc.text", 1),
             ("Insights", "lightbulb", 2),
             ("Actions", "checklist", 3),
+            ("Ask", "bubble.left.and.text.bubble.right", 4),
         ]
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if meeting.audioFileURL != nil {
-                AudioPlayerBar(player: playerService)
-            }
+        bodyContent
+    }
 
-            if !meeting.speakerSegments.isEmpty {
-                TimelineBarView(
-                    segments: meeting.speakerSegments,
-                    duration: playerService.duration,
-                    currentTime: coordinator.currentTimestamp,
-                    speakerNames: meeting.speakerNames,
-                    onTap: { coordinator.seekOnly($0) }
-                )
-            }
-
-            // Show a prominent action button when no transcript exists
-            if meeting.transcriptText.isEmpty && !transcriptionService.isTranscribing && meeting.audioFileURL != nil {
-                Button {
-                    transcribeAndAnalyze()
-                } label: {
-                    Label("Transcribe & Analyze", systemImage: "waveform.and.sparkles")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.borderedProminent)
-                .padding()
-            }
-
-            // Show processing status
-            if isProcessing {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text(transcriptionService.isTranscribing ? "Transcribing..." :
-                         meeting.status == .diarizing ? "Identifying speakers..." :
-                         "Analyzing with AI...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 8)
-            }
-
-            // Pill tab buttons
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(tabItems, id: \.tag) { item in
-                        PillTabButton(
-                            label: item.label,
-                            icon: item.icon,
-                            isSelected: selectedTab == item.tag
-                        ) {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                selectedTab = item.tag
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-            }
-
-            contentTabView
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(maxHeight: .infinity)
-        }
-        .navigationTitle(meeting.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .secondaryAction) {
-                Menu {
-                    Button {
-                        transcribeAudio()
-                    } label: {
-                        Label("Transcribe", systemImage: "waveform")
-                    }
-                    .disabled(meeting.audioFileURL == nil || transcriptionService.isTranscribing)
-
-                    Button {
-                        analyzeTranscript()
-                    } label: {
-                        Label("Analyze with AI", systemImage: "sparkles")
-                    }
-                    .disabled(meeting.transcriptText.isEmpty || claudeService?.isAnalyzing == true)
-
-                    Button {
-                        exportToNotion()
-                    } label: {
-                        if notionService.isExporting {
-                            Label("Exporting...", systemImage: "arrow.up.circle")
-                        } else {
-                            Label(
-                                meeting.isExportedToNotion ? "Re-export to Notion" : "Export to Notion",
-                                systemImage: "arrow.up.doc"
-                            )
-                        }
-                    }
-                    .disabled(meeting.summary == nil || !notionService.isConfigured || notionService.isExporting)
-
-                    Divider()
-
-                    Button {
-                        editedTitle = meeting.title
-                        isEditingTitle = true
-                    } label: {
-                        Label("Rename", systemImage: "pencil")
-                    }
-
-                    Menu("Category") {
-                        Button {
-                            meeting.categoryName = nil
-                        } label: {
-                            HStack {
-                                Text("None")
-                                if meeting.categoryName == nil {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-
-                        ForEach(categories) { category in
-                            Button {
-                                meeting.categoryName = category.name
-                            } label: {
-                                HStack {
-                                    Text(category.name)
-                                    if meeting.categoryName == category.name {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-
-                        Divider()
-
-                        Button {
-                            showNewCategory = true
-                        } label: {
-                            Label("New Category...", systemImage: "plus")
-                        }
-                    }
-                } label: {
-                    if isProcessing {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                }
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                ShareLink(item: shareText) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .disabled(meeting.transcriptText.isEmpty && meeting.summary == nil)
-            }
-        }
-        .alert("Rename Meeting", isPresented: $isEditingTitle) {
+    private var bodyContent: some View {
+        mainContent
+            .alert("Rename Meeting", isPresented: $isEditingTitle) {
             TextField("Meeting title", text: $editedTitle)
             Button("Save") {
                 if !editedTitle.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -253,6 +109,32 @@ struct MeetingDetailView: View {
         } message: {
             Text("Your meeting notes have been exported to Notion.")
         }
+        .alert("Shared to Slack", isPresented: $showSlackSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your meeting summary has been shared to Slack.")
+        }
+        .alert("Shared to Teams", isPresented: $showTeamsSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your meeting summary has been shared to Microsoft Teams.")
+        }
+        .alert("New Series", isPresented: $showSeriesPicker) {
+            TextField("Series name", text: $editedTitle)
+            Button("Create") {
+                let name = editedTitle.trimmingCharacters(in: .whitespaces)
+                if !name.isEmpty {
+                    let series = MeetingSeries(name: name)
+                    modelContext.insert(series)
+                    meeting.series = series
+                    meeting.seriesOrder = 0
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .navigationDestination(for: MeetingSeries.self) { series in
+            SeriesDetailView(series: series)
+        }
         .sheet(isPresented: $showSubscriptionPaywall) {
             NavigationStack {
                 SubscriptionView()
@@ -281,7 +163,220 @@ struct MeetingDetailView: View {
         }
     }
 
+    private var mainContent: some View {
+        VStack(spacing: 0) {
+            headerSection
+            tabSection
+        }
+        .navigationTitle(meeting.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .secondaryAction) {
+                toolbarMenu
+            }
+
+            ToolbarItem(placement: .primaryAction) {
+                ShareLink(item: shareText) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .disabled(meeting.transcriptText.isEmpty && meeting.summary == nil)
+            }
+        }
+    }
+
+    private var toolbarMenu: some View {
+        Menu {
+            toolbarMenuActions
+            Divider()
+            toolbarMenuOrganize
+        } label: {
+            if isProcessing {
+                ProgressView()
+            } else {
+                Image(systemName: "ellipsis.circle")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var toolbarMenuActions: some View {
+        Button {
+            transcribeAudio()
+        } label: {
+            Label("Transcribe", systemImage: "waveform")
+        }
+        .disabled(meeting.audioFileURL == nil || transcriptionService.isTranscribing)
+
+        Button {
+            analyzeTranscript()
+        } label: {
+            Label("Analyze with AI", systemImage: "sparkles")
+        }
+        .disabled(meeting.transcriptText.isEmpty || claudeService?.isAnalyzing == true)
+
+        Button {
+            exportToNotion()
+        } label: {
+            let notionLabel = meeting.isExportedToNotion ? "Re-export to Notion" : "Export to Notion"
+            Label(notionService.isExporting ? "Exporting..." : notionLabel, systemImage: notionService.isExporting ? "arrow.up.circle" : "arrow.up.doc")
+        }
+        .disabled(meeting.summary == nil || !notionService.isConfigured || notionService.isExporting)
+
+        Button {
+            exportToSlack()
+        } label: {
+            let slackLabel = meeting.isSharedToSlack == true ? "Re-share to Slack" : "Share to Slack"
+            Label(slackService.isExporting ? "Sharing..." : (!slackService.isConfigured ? "Share to Slack (Configure in Settings)" : slackLabel), systemImage: "number")
+        }
+        .disabled(meeting.summary == nil || !slackService.isConfigured || slackService.isExporting)
+
+        Button {
+            exportToTeams()
+        } label: {
+            let teamsLabel = meeting.isSharedToTeams == true ? "Re-share to Teams" : "Share to Teams"
+            Label(teamsService.isExporting ? "Sharing..." : (!teamsService.isConfigured ? "Share to Teams (Configure in Settings)" : teamsLabel), systemImage: "person.3")
+        }
+        .disabled(meeting.summary == nil || !teamsService.isConfigured || teamsService.isExporting)
+    }
+
+    @ViewBuilder
+    private var toolbarMenuOrganize: some View {
+        Button {
+            editedTitle = meeting.title
+            isEditingTitle = true
+        } label: {
+            Label("Rename", systemImage: "pencil")
+        }
+
+        Menu("Category") {
+            Button {
+                meeting.categoryName = nil
+            } label: {
+                HStack {
+                    Text("None")
+                    if meeting.categoryName == nil { Image(systemName: "checkmark") }
+                }
+            }
+            ForEach(categories) { category in
+                Button {
+                    meeting.categoryName = category.name
+                } label: {
+                    HStack {
+                        Text(category.name)
+                        if meeting.categoryName == category.name { Image(systemName: "checkmark") }
+                    }
+                }
+            }
+            Divider()
+            Button { showNewCategory = true } label: {
+                Label("New Category...", systemImage: "plus")
+            }
+        }
+
+        Menu("Series") {
+            Button {
+                meeting.series = nil
+                meeting.seriesOrder = nil
+            } label: {
+                HStack {
+                    Text("None")
+                    if meeting.series == nil { Image(systemName: "checkmark") }
+                }
+            }
+            ForEach(allSeries) { series in
+                Button {
+                    meeting.series = series
+                    let nextOrder = (Array(series.meetings).map { $0.seriesOrder ?? 0 }.max() ?? -1) + 1
+                    meeting.seriesOrder = nextOrder
+                } label: {
+                    HStack {
+                        Text(series.name)
+                        if meeting.series?.id == series.id { Image(systemName: "checkmark") }
+                    }
+                }
+            }
+            Divider()
+            Button { showSeriesPicker = true } label: {
+                Label("New Series...", systemImage: "plus")
+            }
+        }
+    }
+
     private var hasAudio: Bool { meeting.audioFileURL != nil }
+
+    @ViewBuilder
+    private var headerSection: some View {
+        if let series = meeting.series {
+            SeriesBannerView(series: series, meeting: meeting)
+                .padding(.horizontal, Theme.spacing16)
+                .padding(.top, Theme.spacing8)
+        }
+
+        if meeting.audioFileURL != nil {
+            AudioPlayerBar(player: playerService)
+        }
+
+        if !meeting.speakerSegments.isEmpty {
+            TimelineBarView(
+                segments: meeting.speakerSegments,
+                duration: playerService.duration,
+                currentTime: coordinator.currentTimestamp,
+                speakerNames: meeting.speakerNames,
+                onTap: { coordinator.seekOnly($0) }
+            )
+        }
+
+        if meeting.transcriptText.isEmpty && !transcriptionService.isTranscribing && meeting.audioFileURL != nil {
+            Button {
+                transcribeAndAnalyze()
+            } label: {
+                Label("Transcribe & Analyze", systemImage: "waveform.and.sparkles")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .padding()
+        }
+
+        if isProcessing {
+            HStack(spacing: 8) {
+                ProgressView()
+                Text(transcriptionService.isTranscribing ? "Transcribing..." :
+                     meeting.status == .diarizing ? "Identifying speakers..." :
+                     "Analyzing with AI...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 8)
+        }
+    }
+
+    private var tabSection: some View {
+        VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(tabItems, id: \.tag) { item in
+                        PillTabButton(
+                            label: item.label,
+                            icon: item.icon,
+                            isSelected: selectedTab == item.tag
+                        ) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedTab = item.tag
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+            }
+
+            contentTabView
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(maxHeight: .infinity)
+        }
+    }
 
     private var contentTabView: some View {
         let seekHandler: ((TimeInterval) -> Void)? = hasAudio ? { coordinator.seekOnly($0) } : nil
@@ -324,6 +419,9 @@ struct MeetingDetailView: View {
                 onSeek: seekHandler
             )
             .tag(3)
+
+            AskMeetingView(meeting: meeting, claudeService: claudeService)
+            .tag(4)
         }
     }
 
@@ -552,6 +650,32 @@ struct MeetingDetailView: View {
                 meeting.notionPageUrl = result.pageUrl
                 notionExportURL = result.pageUrl
                 showNotionSuccess = true
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+
+    private func exportToSlack() {
+        Task { @MainActor in
+            do {
+                try await slackService.exportMeeting(meeting)
+                meeting.isSharedToSlack = true
+                showSlackSuccess = true
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+
+    private func exportToTeams() {
+        Task { @MainActor in
+            do {
+                try await teamsService.exportMeeting(meeting)
+                meeting.isSharedToTeams = true
+                showTeamsSuccess = true
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true

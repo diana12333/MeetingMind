@@ -39,6 +39,29 @@ enum Config {
         - Return ONLY valid JSON, no markdown, no explanation
         """
 
+    static let crossMeetingSystemPrompt = """
+        You are a meeting series analyst. Given summaries from previous meetings in a recurring series and the current meeting's transcript, generate a "Previously On..." brief and track progress.
+
+        Return a JSON object with exactly this structure:
+        {
+          "previouslyOn": "2-3 sentence recap of key unresolved items and decisions from prior meetings",
+          "carriedForwardItems": [
+            { "title": "action item still open", "originMeeting": "meeting title or date" }
+          ],
+          "progressUpdate": "1-2 sentence summary of progress made since the last meeting",
+          "decisionLog": [
+            { "text": "key decision", "meetingDate": "when it was decided" }
+          ]
+        }
+
+        Rules:
+        - previouslyOn: Focus on what's most relevant for the current meeting — unresolved items, pending decisions
+        - carriedForwardItems: Only include items that appear unresolved across meetings
+        - progressUpdate: Compare what was planned vs. what was accomplished
+        - decisionLog: Aggregate key decisions across all meetings in the series
+        - Return ONLY valid JSON, no markdown, no explanation
+        """
+
     static let diarizationSystemPrompt = """
         You are a speaker diarization assistant. Analyze the provided meeting transcript and identify distinct speakers based on conversational cues (e.g., "I think...", "You mentioned...", changes in topic or perspective, question-answer patterns).
 
@@ -130,15 +153,22 @@ final class ClaudeAPIService {
     }
 
     @MainActor
-    func analyzeTranscript(_ transcript: String, timestampedTranscript: String? = nil) async throws -> AIAnalysisResult {
+    func analyzeTranscript(_ transcript: String, timestampedTranscript: String? = nil, template: MeetingTemplate? = nil) async throws -> AIAnalysisResult {
         isAnalyzing = true
         defer { isAnalyzing = false }
+
+        let systemPrompt = template?.systemPrompt ?? Config.analysisSystemPrompt
 
         #if DEBUG
         // In DEBUG mode, try direct API first if key is available
         let apiKey = UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
         if !apiKey.isEmpty {
-            return try await analyzeDirectly(transcript: transcript, timestampedTranscript: timestampedTranscript, apiKey: apiKey)
+            let transcriptToAnalyze = timestampedTranscript ?? transcript
+            return try await callClaude(
+                systemPrompt: systemPrompt,
+                userMessage: "Please analyze this meeting transcript:\n\n\(transcriptToAnalyze)",
+                apiKey: apiKey
+            )
         }
         // Fall back to mock analysis for testing without API key
         if UserDefaults.standard.bool(forKey: "useMockAnalysis") {
@@ -234,18 +264,6 @@ final class ClaudeAPIService {
         return try JSONDecoder().decode(T.self, from: jsonData)
     }
 
-    // MARK: - Direct Claude API (DEBUG mode)
-
-    @MainActor
-    private func analyzeDirectly(transcript: String, timestampedTranscript: String? = nil, apiKey: String) async throws -> AIAnalysisResult {
-        let transcriptToAnalyze = timestampedTranscript ?? transcript
-        return try await callClaude(
-            systemPrompt: Config.analysisSystemPrompt,
-            userMessage: "Please analyze this meeting transcript:\n\n\(transcriptToAnalyze)",
-            apiKey: apiKey
-        )
-    }
-
     // MARK: - Diarization (two-pass pipeline, pass 1)
 
     @MainActor
@@ -272,12 +290,13 @@ final class ClaudeAPIService {
     // MARK: - Executive brief analysis (two-pass pipeline, pass 2)
 
     @MainActor
-    func analyzeWithExecutiveBrief(_ speakerLabeledTranscript: String) async throws -> AIAnalysisResult {
+    func analyzeWithExecutiveBrief(_ speakerLabeledTranscript: String, template: MeetingTemplate? = nil) async throws -> AIAnalysisResult {
         #if DEBUG
         let apiKey = UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
         if !apiKey.isEmpty {
+            let briefPrompt = template?.systemPrompt ?? Config.executiveBriefSystemPrompt
             return try await callClaude(
-                systemPrompt: Config.executiveBriefSystemPrompt,
+                systemPrompt: briefPrompt,
                 userMessage: "Please analyze this speaker-labeled meeting transcript:\n\n\(speakerLabeledTranscript)",
                 apiKey: apiKey
             )
@@ -289,6 +308,108 @@ final class ClaudeAPIService {
         #else
         return try await analyzeViaBackend(transcript: speakerLabeledTranscript)
         #endif
+    }
+
+    // MARK: - Cross-Meeting Analysis
+
+    @MainActor
+    func analyzeCrossMeeting(
+        previousSummaries: [String],
+        currentTranscript: String
+    ) async throws -> CrossMeetingAnalysis {
+        #if DEBUG
+        let apiKey = UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
+        if !apiKey.isEmpty {
+            let context = previousSummaries.joined(separator: "\n\n")
+            let userMessage = """
+                Previous meetings in this series:
+                \(context)
+
+                Current meeting transcript:
+                \(currentTranscript)
+                """
+            return try await callClaude(
+                systemPrompt: Config.crossMeetingSystemPrompt,
+                userMessage: userMessage,
+                apiKey: apiKey
+            )
+        }
+        return CrossMeetingAnalysis.empty
+        #else
+        return CrossMeetingAnalysis.empty
+        #endif
+    }
+
+    // MARK: - Chat with Meeting
+
+    @MainActor
+    func chatWithMeeting(transcript: String, history: [ChatMessage], userMessage: String) async throws -> String {
+        #if DEBUG
+        let apiKey = UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
+        guard !apiKey.isEmpty else {
+            return "Chat requires a Claude API key. Add one in Settings."
+        }
+
+        let systemPrompt = """
+            You are a helpful meeting assistant. You have access to the following meeting transcript. \
+            Answer the user's questions based on the transcript content. Be specific, cite relevant parts \
+            of the discussion, and provide helpful context. If the user asks you to draft something \
+            (like an email or summary), use the meeting content as the basis.
+
+            Meeting Transcript:
+            \(transcript)
+            """
+
+        var messages: [[String: String]] = []
+        for msg in history {
+            messages.append(["role": msg.role, "content": msg.content])
+        }
+        messages.append(["role": "user", "content": userMessage])
+
+        return try await callClaudeChat(systemPrompt: systemPrompt, messages: messages, apiKey: apiKey)
+        #else
+        throw ClaudeAPIError.invalidResponse
+        #endif
+    }
+
+    @MainActor
+    private func callClaudeChat(systemPrompt: String, messages: [[String: String]], apiKey: String) async throws -> String {
+        let url = URL(string: Config.claudeAPIURL)!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+
+        let body: [String: Any] = [
+            "model": Config.claudeModel,
+            "max_tokens": 4096,
+            "system": systemPrompt,
+            "messages": messages
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ClaudeAPIError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            let errorBody = String(data: data, encoding: .utf8) ?? "Unknown error"
+            if httpResponse.statusCode == 401 {
+                throw ClaudeAPIError.apiError(statusCode: 401, message: "Invalid API key. Check your Claude API key in Settings.")
+            }
+            throw ClaudeAPIError.apiError(statusCode: httpResponse.statusCode, message: errorBody)
+        }
+
+        let claudeResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let content = claudeResponse?["content"] as? [[String: Any]],
+              let textContent = content.first?["text"] as? String else {
+            throw ClaudeAPIError.invalidResponse
+        }
+
+        return textContent
     }
 
     // MARK: - Backend proxy

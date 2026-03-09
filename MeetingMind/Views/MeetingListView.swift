@@ -194,6 +194,13 @@ struct MeetingListView: View {
                     appState.shouldStartRecording = false
                 }
             }
+            .onChange(of: appState.deepLinkMeetingId) { _, meetingId in
+                guard let meetingId else { return }
+                if let meeting = meetings.first(where: { $0.id == meetingId }) {
+                    navigationPath.append(meeting)
+                }
+                appState.deepLinkMeetingId = nil
+            }
         }
     }
 

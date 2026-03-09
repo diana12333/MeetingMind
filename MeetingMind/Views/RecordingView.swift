@@ -9,6 +9,8 @@ struct RecordingView: View {
     @State private var meeting: Meeting?
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var selectedTemplateId = "general"
+    @State private var templateManager = TemplateManager()
 
     var body: some View {
         NavigationStack {
@@ -17,6 +19,11 @@ struct RecordingView: View {
 
                 statusLabel
                 timerDisplay
+
+                TemplateChipPicker(
+                    selectedTemplateId: $selectedTemplateId,
+                    templates: templateManager.allTemplates
+                )
 
                 WaveformView(levels: recorder.audioLevels)
                     .padding(.horizontal)
@@ -136,6 +143,8 @@ struct RecordingView: View {
         let newMeeting = Meeting(title: "Meeting \(Date().formatted(date: .abbreviated, time: .shortened))")
         let fileName = "\(newMeeting.id.uuidString).m4a"
         newMeeting.audioFileName = fileName
+
+        newMeeting.templateId = selectedTemplateId
 
         do {
             _ = try recorder.startRecording(fileName: fileName, title: newMeeting.title)
