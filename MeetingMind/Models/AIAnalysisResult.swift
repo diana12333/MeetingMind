@@ -122,6 +122,34 @@ struct AIReference: Codable, Sendable {
     }
 }
 
+struct CrossMeetingAnalysis: Codable {
+    let previouslyOn: String
+    let carriedForwardItems: [CarriedForwardItem]
+    let progressUpdate: String
+    let decisionLog: [SeriesDecision]
+
+    static let empty = CrossMeetingAnalysis(
+        previouslyOn: "",
+        carriedForwardItems: [],
+        progressUpdate: "",
+        decisionLog: []
+    )
+
+    var isEmpty: Bool {
+        previouslyOn.isEmpty && carriedForwardItems.isEmpty && progressUpdate.isEmpty && decisionLog.isEmpty
+    }
+}
+
+struct CarriedForwardItem: Codable {
+    let title: String
+    let originMeeting: String
+}
+
+struct SeriesDecision: Codable {
+    let text: String
+    let meetingDate: String
+}
+
 struct AIActionItem: Codable {
     let title: String
     let type: String

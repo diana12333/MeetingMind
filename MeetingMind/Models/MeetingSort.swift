@@ -10,4 +10,5 @@ enum MeetingSortOrder: String, CaseIterable {
 enum MeetingGroupMode: String, CaseIterable {
     case none = "No Grouping"
     case category = "By Category"
+    case series = "By Series"
 }

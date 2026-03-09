@@ -11,12 +11,18 @@ final class ActionItem {
     var exportedIdentifier: String?
     var meeting: Meeting?
 
+    // Completion tracking (optional → lightweight migration)
+    var isCompleted: Bool
+    var completedAt: Date?
+
     init(
         title: String,
         type: ActionItemType,
         dueDate: Date? = nil,
         isExported: Bool = false,
-        exportedIdentifier: String? = nil
+        exportedIdentifier: String? = nil,
+        isCompleted: Bool = false,
+        completedAt: Date? = nil
     ) {
         self.id = UUID()
         self.title = title
@@ -24,5 +30,7 @@ final class ActionItem {
         self.dueDate = dueDate
         self.isExported = isExported
         self.exportedIdentifier = exportedIdentifier
+        self.isCompleted = isCompleted
+        self.completedAt = completedAt
     }
 }
