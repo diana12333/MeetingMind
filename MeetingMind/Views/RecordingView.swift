@@ -138,7 +138,7 @@ struct RecordingView: View {
         newMeeting.audioFileName = fileName
 
         do {
-            _ = try recorder.startRecording(fileName: fileName)
+            _ = try recorder.startRecording(fileName: fileName, title: newMeeting.title)
             meeting = newMeeting
             modelContext.insert(newMeeting)
         } catch {

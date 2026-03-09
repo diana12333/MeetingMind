@@ -1,3 +1,4 @@
+import ActivityKit
 import AVFoundation
 import Foundation
 
@@ -6,6 +7,8 @@ import Foundation
 final class AudioRecorderService {
     private var audioRecorder: AVAudioRecorder?
     private var timer: Timer?
+    private var liveActivity: Activity<MeetingRecordingAttributes>?
+    private var lastActivityUpdate: Date = .distantPast
 
     var isRecording = false
     var isPaused = false
@@ -14,8 +17,9 @@ final class AudioRecorderService {
 
     private var startTime: Date?
     private var accumulatedTime: TimeInterval = 0
+    private var meetingTitle: String = ""
 
-    func startRecording(fileName: String) throws -> URL {
+    func startRecording(fileName: String, title: String = "Meeting") throws -> URL {
         let audioSession = AVAudioSession.sharedInstance()
         try audioSession.setCategory(.playAndRecord, mode: .default)
         try audioSession.setActive(true)
@@ -38,7 +42,9 @@ final class AudioRecorderService {
         isPaused = false
         startTime = Date()
         accumulatedTime = 0
+        meetingTitle = title
         startTimer()
+        startLiveActivity()
 
         return audioURL
     }
@@ -49,6 +55,7 @@ final class AudioRecorderService {
         accumulatedTime = elapsedTime
         startTime = nil
         timer?.invalidate()
+        updateLiveActivity()
     }
 
     func resumeRecording() {
@@ -56,6 +63,7 @@ final class AudioRecorderService {
         isPaused = false
         startTime = Date()
         startTimer()
+        updateLiveActivity()
     }
 
     func stopRecording() -> TimeInterval {
@@ -69,6 +77,8 @@ final class AudioRecorderService {
         accumulatedTime = 0
         startTime = nil
         audioLevels = []
+
+        endLiveActivity()
 
         try? AVAudioSession.sharedInstance().setActive(false)
         return finalDuration
@@ -89,7 +99,76 @@ final class AudioRecorderService {
                         self.audioLevels.removeFirst()
                     }
                 }
+
+                // Update Live Activity at ~1 Hz
+                let now = Date()
+                if now.timeIntervalSince(self.lastActivityUpdate) >= 1.0 {
+                    self.lastActivityUpdate = now
+                    self.updateLiveActivity()
+                }
             }
         }
+    }
+
+    // MARK: - Live Activity
+
+    private func startLiveActivity() {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+
+        let attributes = MeetingRecordingAttributes(meetingTitle: meetingTitle)
+        let initialState = MeetingRecordingAttributes.ContentState(
+            elapsedTime: 0,
+            isPaused: false,
+            audioLevel: 0
+        )
+        let content = ActivityContent(state: initialState, staleDate: Date().addingTimeInterval(5))
+
+        do {
+            liveActivity = try Activity.request(
+                attributes: attributes,
+                content: content,
+                pushType: nil
+            )
+        } catch {
+            print("Failed to start Live Activity: \(error)")
+        }
+    }
+
+    private func updateLiveActivity() {
+        guard let liveActivity else { return }
+
+        let currentLevel: Float
+        if let level = audioRecorder?.averagePower(forChannel: 0) {
+            currentLevel = max(0, (level + 60) / 60)
+        } else {
+            currentLevel = 0
+        }
+
+        let updatedState = MeetingRecordingAttributes.ContentState(
+            elapsedTime: elapsedTime,
+            isPaused: isPaused,
+            audioLevel: currentLevel
+        )
+        let content = ActivityContent(state: updatedState, staleDate: Date().addingTimeInterval(5))
+
+        Task {
+            await liveActivity.update(content)
+        }
+    }
+
+    private func endLiveActivity() {
+        guard let liveActivity else { return }
+
+        let finalState = MeetingRecordingAttributes.ContentState(
+            elapsedTime: elapsedTime,
+            isPaused: false,
+            audioLevel: 0
+        )
+        let content = ActivityContent(state: finalState, staleDate: nil)
+
+        Task {
+            await liveActivity.end(content, dismissalPolicy: .default)
+        }
+        self.liveActivity = nil
     }
 }
