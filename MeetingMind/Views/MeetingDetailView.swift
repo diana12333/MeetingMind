@@ -279,9 +279,6 @@ struct MeetingDetailView: View {
         .onChange(of: playerService.currentTime) { _, newTime in
             coordinator.updatePlaybackPosition(newTime)
         }
-        .onDisappear {
-            playerService.stop()
-        }
     }
 
     private var hasAudio: Bool { meeting.audioFileURL != nil }
