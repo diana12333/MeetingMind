@@ -27,6 +27,7 @@
 		3C0BEA00A50FA4192238A91C /* ActionItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */; };
 		4B0A2FD49821D88227896CA0 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D4D3EA2A28ECF04904E897 /* SubscriptionService.swift */; };
 		4B8C89200417A4925F1D1C75 /* WatchMeetingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F47EE46988D649E2BF3EC8 /* WatchMeetingListView.swift */; };
+		59716644BAF79757CF9CF6A2 /* AskMeetingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08A73B2CA2981B2050323FA5 /* AskMeetingView.swift */; };
 		60896929CD6644E59D2FA2E3 /* MeetingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */; };
 		610EA9E563047615773A6851 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF20FBA0FC8DFE838B26B62F /* ActivityViewController.swift */; };
 		66764B52A2EBA14CC3C3A586 /* MeetingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */; };
@@ -103,6 +104,7 @@
 		053311BD5D7B8D4916ADF85C /* WatchAudioRecorderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchAudioRecorderService.swift; sourceTree = "<group>"; };
 		070B82D13CC416F00F061A12 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		085481F4CBCDA62768395873 /* TemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateManager.swift; sourceTree = "<group>"; };
+		08A73B2CA2981B2050323FA5 /* AskMeetingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskMeetingView.swift; sourceTree = "<group>"; };
 		097C2C2403DFDD47E5FD60D4 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
 		09B49BA4B7354FDCD8CFB976 /* TeamsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamsService.swift; sourceTree = "<group>"; };
 		0FF2CE71827784A92E59E455 /* MeetingRecordingAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRecordingAttributes.swift; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 				CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */,
 				CF20FBA0FC8DFE838B26B62F /* ActivityViewController.swift */,
 				54DA2C0959DBCF5264699905 /* AnalyticsDashboardView.swift */,
+				08A73B2CA2981B2050323FA5 /* AskMeetingView.swift */,
 				9FA8E6688D7BAF77AD7E56CF /* CitationPopover.swift */,
 				86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */,
 				DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */,
@@ -453,6 +456,7 @@
 				610EA9E563047615773A6851 /* ActivityViewController.swift in Sources */,
 				8C00E9E6186E0F08DAC58AF1 /* AnalyticsDashboardView.swift in Sources */,
 				1577A8DC69478DB3A96EE216 /* AnalyticsService.swift in Sources */,
+				59716644BAF79757CF9CF6A2 /* AskMeetingView.swift in Sources */,
 				2BF1BBA073FE0ECE721DD056 /* AudioPlayerService.swift in Sources */,
 				75B4909E1BB08CA2C9FA000A /* AudioRecorderService.swift in Sources */,
 				069B186B44887D0B91B107E4 /* ChatMessage.swift in Sources */,

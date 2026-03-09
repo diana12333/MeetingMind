@@ -54,6 +54,10 @@ targets:
         CFBundleVersion: "1"
         LSRequiresIPhoneOS: true
         NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.meetingmind.app
+            CFBundleURLSchemes:
+              - meetingmind
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UILaunchScreen: {}
