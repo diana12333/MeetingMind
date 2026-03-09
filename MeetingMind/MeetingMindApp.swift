@@ -59,10 +59,11 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, @unchecked Sendable 
 struct MeetingMindApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     let container: ModelContainer
+    let subscriptionService = SubscriptionService()
 
     init() {
         do {
-            let schema = Schema([Meeting.self, ActionItem.self, MeetingSeries.self])
+            let schema = Schema([Meeting.self, ActionItem.self, MeetingSeries.self, MeetingCategory.self])
             let config = ModelConfiguration(isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [config])
         } catch {
@@ -74,6 +75,7 @@ struct MeetingMindApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .environment(subscriptionService)
                 .onOpenURL { url in
                     handleDeepLink(url)
                 }

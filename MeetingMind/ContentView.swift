@@ -8,5 +8,7 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: [Meeting.self, ActionItem.self], inMemory: true)
+        .modelContainer(for: [Meeting.self, ActionItem.self, MeetingSeries.self, MeetingCategory.self], inMemory: true)
+        .environment(SubscriptionService())
+        .environment(AppState())
 }
