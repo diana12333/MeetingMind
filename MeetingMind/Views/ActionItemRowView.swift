@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActionItemRowView: View {
     let item: ActionItem
+    var onSeek: ((TimeInterval) -> Void)? = nil
     let onExport: () -> Void
 
     var body: some View {

@@ -520,8 +520,7 @@ struct MeetingDetailView: View {
                     let actionItem = ActionItem(
                         title: aiItem.title,
                         type: aiItem.actionItemType,
-                        dueDate: aiItem.parsedDate,
-                        timestampSeconds: aiItem.timestampSeconds
+                        dueDate: aiItem.parsedDate
                     )
                     meeting.actionItems.append(actionItem)
                 }
