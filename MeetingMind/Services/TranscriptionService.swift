@@ -14,6 +14,35 @@ final class TranscriptionService {
         recognizer = SFSpeechRecognizer(locale: locale)
     }
 
+    func setLocale(_ locale: Locale) {
+        recognizer = SFSpeechRecognizer(locale: locale)
+    }
+
+    static func chunkSegments(_ segments: [TranscriptSegment], maxChunkDuration: TimeInterval = 30) -> [TranscriptSegment] {
+        guard !segments.isEmpty else { return [] }
+        var chunks: [TranscriptSegment] = []
+        var currentText = ""
+        var chunkStart = segments[0].timestamp
+        var chunkDuration: TimeInterval = 0
+
+        for segment in segments {
+            if chunkDuration + segment.duration > maxChunkDuration && !currentText.isEmpty {
+                chunks.append(TranscriptSegment(text: currentText.trimmingCharacters(in: .whitespaces), timestamp: chunkStart, duration: chunkDuration))
+                currentText = ""
+                chunkStart = segment.timestamp
+                chunkDuration = 0
+            }
+            currentText += " " + segment.text
+            chunkDuration += segment.duration
+        }
+
+        if !currentText.isEmpty {
+            chunks.append(TranscriptSegment(text: currentText.trimmingCharacters(in: .whitespaces), timestamp: chunkStart, duration: chunkDuration))
+        }
+
+        return chunks
+    }
+
     func requestAuthorization() async -> Bool {
         await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { status in
@@ -22,7 +51,7 @@ final class TranscriptionService {
         }
     }
 
-    func transcribeAudioFile(url: URL) async throws -> String {
+    func transcribeAudioFile(url: URL) async throws -> TranscriptionResult {
         guard let recognizer, recognizer.isAvailable else {
             throw TranscriptionError.recognizerUnavailable
         }
@@ -59,7 +88,18 @@ final class TranscriptionService {
 
                 if result.isFinal, !hasResumed {
                     hasResumed = true
-                    continuation.resume(returning: result.bestTranscription.formattedString)
+                    let transcription = result.bestTranscription
+                    let segments = transcription.segments.map { seg in
+                        TranscriptSegment(
+                            text: seg.substring,
+                            timestamp: seg.timestamp,
+                            duration: seg.duration
+                        )
+                    }
+                    continuation.resume(returning: TranscriptionResult(
+                        fullText: transcription.formattedString,
+                        segments: segments
+                    ))
                 }
             }
         }

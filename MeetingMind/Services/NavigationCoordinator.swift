@@ -25,6 +25,14 @@ final class NavigationCoordinator {
         highlightedSegmentIndex = nil
     }
 
+    func seekOnly(_ timestamp: TimeInterval) {
+        currentTimestamp = timestamp
+        scrollToTimestamp = timestamp
+        playerService?.seek(to: timestamp)
+        // NO playerService?.play() -- seek only
+        highlightedSegmentIndex = nil
+    }
+
     func updatePlaybackPosition(_ time: TimeInterval) {
         currentTimestamp = time
         if isFollowingPlayback {

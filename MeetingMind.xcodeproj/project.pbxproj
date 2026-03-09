@@ -10,57 +10,95 @@
 		1BC4A9F008129F2CA240D555 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C108DAF4E4C6F87B3E2034E /* KeychainService.swift */; };
 		1CEFA97D216138458F2E1BDE /* MeetingMindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E54E25A6C0017D872D1587A /* MeetingMindApp.swift */; };
 		222E2F1182E4C3D40DFCB9DC /* MeetingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */; };
+		281676B1D0B4BA316B3C7D05 /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC96160FCCAF4CE71A465D9B /* NavigationCoordinator.swift */; };
 		2BF1BBA073FE0ECE721DD056 /* AudioPlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA58E4B3DA150F31733F3F8 /* AudioPlayerService.swift */; };
 		2E45A9E32DFDD45718437E82 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A56BDA44D6761607AC66B6E /* SettingsView.swift */; };
 		34BAE354ED3080853C50A886 /* EventKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D89BE85CF1FF57552C9F95 /* EventKitService.swift */; };
+		37E03C90167D2F27540B2389 /* TimestampBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548EC128B57EBFF552146629 /* TimestampBadge.swift */; };
+		3B0BD636F1B6071E46A88A07 /* MeetingCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20CD070CB0BD7742899DA161 /* MeetingCategory.swift */; };
 		3C0BEA00A50FA4192238A91C /* ActionItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */; };
+		4B0A2FD49821D88227896CA0 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D4D3EA2A28ECF04904E897 /* SubscriptionService.swift */; };
 		60896929CD6644E59D2FA2E3 /* MeetingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */; };
+		610EA9E563047615773A6851 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF20FBA0FC8DFE838B26B62F /* ActivityViewController.swift */; };
 		66764B52A2EBA14CC3C3A586 /* MeetingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */; };
+		6E0834DAACEF32278A2CF7C4 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8616ADBB096E9E57901BE02A /* ToastView.swift */; };
+		6FDAE25640DF3EEF22002884 /* MeetingSort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AC5BB17B4AECE44C8EED6B0 /* MeetingSort.swift */; };
 		75B4909E1BB08CA2C9FA000A /* AudioRecorderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A911557214C6E938110E6CB7 /* AudioRecorderService.swift */; };
 		7ACF46A653FD74819AE99A5A /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */; };
+		80CD6A9DE3A5E3F3DA3ACE03 /* VideoEncodingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D62100D3C99771D21FACB2 /* VideoEncodingService.swift */; };
+		88410EAD36192A3D5AE333F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 070B82D13CC416F00F061A12 /* Assets.xcassets */; };
 		8F344A6DDD4BBCC9557BC3C9 /* ActionItemType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60F6D6FD20665BBE68D7280C /* ActionItemType.swift */; };
+		8FA32AC07901E0D5D400A304 /* TimelineBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7662077D25FAD22C538B5C8 /* TimelineBarView.swift */; };
 		9E856EC7E79625F40EDD20E6 /* MeetingRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */; };
+		9E8851946FFD30804054FA1A /* RichSummaryText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F69CDD6D7FEACE07F08A86 /* RichSummaryText.swift */; };
+		A6329C453C7D9206E018D428 /* CitationPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA8E6688D7BAF77AD7E56CF /* CitationPopover.swift */; };
+		AE0EE7A080E9900AB65EC911 /* TranscriptSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9B2A62D938EB2A2228C756 /* TranscriptSegment.swift */; };
 		B2F56EB3012F9F31BA40D488 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04722F7AE9F53D0B9D92BD71 /* Theme.swift */; };
 		B4A2638FA74330C43D88589E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AB14326952753AE50B5157 /* ContentView.swift */; };
 		B773444DE6AB30D1F905508D /* AIAnalysisResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */; };
 		B8D338D2D5BA49CADA72CE74 /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */; };
+		B9469B7A049831CDA81D855F /* Products.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 6271D8A75219F534398A8998 /* Products.storekit */; };
+		C79019FE8FB2C8EAD3DB9772 /* SubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 097C2C2403DFDD47E5FD60D4 /* SubscriptionView.swift */; };
+		C93FC24C311028A90E4360B0 /* NotionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64DEC6FF264CDAC233977B82 /* NotionService.swift */; };
 		CDA3BB99B0604BB5B6BBF452 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E623AAB98D3679555A15A3 /* WaveformView.swift */; };
 		D24BA91AAF286499B529298D /* RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DC678CB54A36B558CE03D2 /* RecordingView.swift */; };
 		D8F12F7A78382E1AB58BA9D6 /* ActionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE82ADA663685D1DF2F1037 /* ActionItem.swift */; };
+		EE473E36B7F73BFF7AE55B80 /* SpeakerSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CE94E18875BB10E2FF005CC /* SpeakerSegment.swift */; };
 		FCC51EC63B4C63C24D9313AB /* Meeting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FD06F47139FC41D85FAEDC /* Meeting.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		01D62100D3C99771D21FACB2 /* VideoEncodingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEncodingService.swift; sourceTree = "<group>"; };
 		04722F7AE9F53D0B9D92BD71 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		070B82D13CC416F00F061A12 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		097C2C2403DFDD47E5FD60D4 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
+		1CE94E18875BB10E2FF005CC /* SpeakerSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakerSegment.swift; sourceTree = "<group>"; };
+		20CD070CB0BD7742899DA161 /* MeetingCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingCategory.swift; sourceTree = "<group>"; };
+		3AC5BB17B4AECE44C8EED6B0 /* MeetingSort.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingSort.swift; sourceTree = "<group>"; };
 		3E54E25A6C0017D872D1587A /* MeetingMindApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingMindApp.swift; sourceTree = "<group>"; };
 		41AB14326952753AE50B5157 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		44220C5BAEE64FD616DC8B43 /* MeetingMind.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeetingMind.entitlements; sourceTree = "<group>"; };
+		548EC128B57EBFF552146629 /* TimestampBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampBadge.swift; sourceTree = "<group>"; };
 		60F6D6FD20665BBE68D7280C /* ActionItemType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItemType.swift; sourceTree = "<group>"; };
+		6271D8A75219F534398A8998 /* Products.storekit */ = {isa = PBXFileReference; path = Products.storekit; sourceTree = "<group>"; };
+		64DEC6FF264CDAC233977B82 /* NotionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotionService.swift; sourceTree = "<group>"; };
 		65DC678CB54A36B558CE03D2 /* RecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingView.swift; sourceTree = "<group>"; };
 		65FD06F47139FC41D85FAEDC /* Meeting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meeting.swift; sourceTree = "<group>"; };
 		6A56BDA44D6761607AC66B6E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		8616ADBB096E9E57901BE02A /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingDetailView.swift; sourceTree = "<group>"; };
 		8FE82ADA663685D1DF2F1037 /* ActionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItem.swift; sourceTree = "<group>"; };
 		93D89BE85CF1FF57552C9F95 /* EventKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventKitService.swift; sourceTree = "<group>"; };
 		9C108DAF4E4C6F87B3E2034E /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		9EA58E4B3DA150F31733F3F8 /* AudioPlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerService.swift; sourceTree = "<group>"; };
+		9FA8E6688D7BAF77AD7E56CF /* CitationPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitationPopover.swift; sourceTree = "<group>"; };
 		A7DC8851B6BC9BA9E33DC49C /* MeetingMind.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MeetingMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A911557214C6E938110E6CB7 /* AudioRecorderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderService.swift; sourceTree = "<group>"; };
 		AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingStatus.swift; sourceTree = "<group>"; };
 		ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
 		B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRowView.swift; sourceTree = "<group>"; };
+		B7662077D25FAD22C538B5C8 /* TimelineBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineBarView.swift; sourceTree = "<group>"; };
+		C1F69CDD6D7FEACE07F08A86 /* RichSummaryText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RichSummaryText.swift; sourceTree = "<group>"; };
 		C5E623AAB98D3679555A15A3 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
 		C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		CA325F93C614E684371E3BFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionItemRowView.swift; sourceTree = "<group>"; };
+		CF20FBA0FC8DFE838B26B62F /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingListView.swift; sourceTree = "<group>"; };
 		F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisResult.swift; sourceTree = "<group>"; };
+		F3D4D3EA2A28ECF04904E897 /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		FA9B2A62D938EB2A2228C756 /* TranscriptSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptSegment.swift; sourceTree = "<group>"; };
+		FC96160FCCAF4CE71A465D9B /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		119B4015A8974E1D09489A72 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				070B82D13CC416F00F061A12 /* Assets.xcassets */,
 				CA325F93C614E684371E3BFE /* Info.plist */,
+				44220C5BAEE64FD616DC8B43 /* MeetingMind.entitlements */,
+				6271D8A75219F534398A8998 /* Products.storekit */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -69,12 +107,19 @@
 			isa = PBXGroup;
 			children = (
 				CBE34B4C28925C374E53D6BA /* ActionItemRowView.swift */,
+				CF20FBA0FC8DFE838B26B62F /* ActivityViewController.swift */,
+				9FA8E6688D7BAF77AD7E56CF /* CitationPopover.swift */,
 				86DDC07F4971823B458DD9D1 /* MeetingDetailView.swift */,
 				DFB0FC9A5FB74F7C0E2F0F8B /* MeetingListView.swift */,
 				B0181F7CA933BC7E7744D05A /* MeetingRowView.swift */,
 				65DC678CB54A36B558CE03D2 /* RecordingView.swift */,
+				C1F69CDD6D7FEACE07F08A86 /* RichSummaryText.swift */,
 				6A56BDA44D6761607AC66B6E /* SettingsView.swift */,
+				097C2C2403DFDD47E5FD60D4 /* SubscriptionView.swift */,
 				04722F7AE9F53D0B9D92BD71 /* Theme.swift */,
+				B7662077D25FAD22C538B5C8 /* TimelineBarView.swift */,
+				548EC128B57EBFF552146629 /* TimestampBadge.swift */,
+				8616ADBB096E9E57901BE02A /* ToastView.swift */,
 				C5E623AAB98D3679555A15A3 /* WaveformView.swift */,
 			);
 			path = Views;
@@ -108,7 +153,11 @@
 				60F6D6FD20665BBE68D7280C /* ActionItemType.swift */,
 				F10389A3976424CDDB9A3DC4 /* AIAnalysisResult.swift */,
 				65FD06F47139FC41D85FAEDC /* Meeting.swift */,
+				20CD070CB0BD7742899DA161 /* MeetingCategory.swift */,
+				3AC5BB17B4AECE44C8EED6B0 /* MeetingSort.swift */,
 				AC68B855EB7CF4EC0EBD4180 /* MeetingStatus.swift */,
+				1CE94E18875BB10E2FF005CC /* SpeakerSegment.swift */,
+				FA9B2A62D938EB2A2228C756 /* TranscriptSegment.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -129,7 +178,11 @@
 				ADE422E721C38BE38CE920EE /* ClaudeAPIService.swift */,
 				93D89BE85CF1FF57552C9F95 /* EventKitService.swift */,
 				9C108DAF4E4C6F87B3E2034E /* KeychainService.swift */,
+				FC96160FCCAF4CE71A465D9B /* NavigationCoordinator.swift */,
+				64DEC6FF264CDAC233977B82 /* NotionService.swift */,
+				F3D4D3EA2A28ECF04904E897 /* SubscriptionService.swift */,
 				C9A071D993C6DDFF7E6E445D /* TranscriptionService.swift */,
+				01D62100D3C99771D21FACB2 /* VideoEncodingService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -142,6 +195,7 @@
 			buildConfigurationList = BE3A694F2706378046571C58 /* Build configuration list for PBXNativeTarget "MeetingMind" */;
 			buildPhases = (
 				AC553E594A629DEDDAEA5A38 /* Sources */,
+				10EB3E302BED8A7B16702C0B /* Resources */,
 			);
 			buildRules = (
 			);
@@ -187,6 +241,18 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		10EB3E302BED8A7B16702C0B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				88410EAD36192A3D5AE333F3 /* Assets.xcassets in Resources */,
+				B9469B7A049831CDA81D855F /* Products.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		AC553E594A629DEDDAEA5A38 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -196,22 +262,37 @@
 				D8F12F7A78382E1AB58BA9D6 /* ActionItem.swift in Sources */,
 				3C0BEA00A50FA4192238A91C /* ActionItemRowView.swift in Sources */,
 				8F344A6DDD4BBCC9557BC3C9 /* ActionItemType.swift in Sources */,
+				610EA9E563047615773A6851 /* ActivityViewController.swift in Sources */,
 				2BF1BBA073FE0ECE721DD056 /* AudioPlayerService.swift in Sources */,
 				75B4909E1BB08CA2C9FA000A /* AudioRecorderService.swift in Sources */,
+				A6329C453C7D9206E018D428 /* CitationPopover.swift in Sources */,
 				B8D338D2D5BA49CADA72CE74 /* ClaudeAPIService.swift in Sources */,
 				B4A2638FA74330C43D88589E /* ContentView.swift in Sources */,
 				34BAE354ED3080853C50A886 /* EventKitService.swift in Sources */,
 				1BC4A9F008129F2CA240D555 /* KeychainService.swift in Sources */,
 				FCC51EC63B4C63C24D9313AB /* Meeting.swift in Sources */,
+				3B0BD636F1B6071E46A88A07 /* MeetingCategory.swift in Sources */,
 				222E2F1182E4C3D40DFCB9DC /* MeetingDetailView.swift in Sources */,
 				66764B52A2EBA14CC3C3A586 /* MeetingListView.swift in Sources */,
 				1CEFA97D216138458F2E1BDE /* MeetingMindApp.swift in Sources */,
 				9E856EC7E79625F40EDD20E6 /* MeetingRowView.swift in Sources */,
+				6FDAE25640DF3EEF22002884 /* MeetingSort.swift in Sources */,
 				60896929CD6644E59D2FA2E3 /* MeetingStatus.swift in Sources */,
+				281676B1D0B4BA316B3C7D05 /* NavigationCoordinator.swift in Sources */,
+				C93FC24C311028A90E4360B0 /* NotionService.swift in Sources */,
 				D24BA91AAF286499B529298D /* RecordingView.swift in Sources */,
+				9E8851946FFD30804054FA1A /* RichSummaryText.swift in Sources */,
 				2E45A9E32DFDD45718437E82 /* SettingsView.swift in Sources */,
+				EE473E36B7F73BFF7AE55B80 /* SpeakerSegment.swift in Sources */,
+				4B0A2FD49821D88227896CA0 /* SubscriptionService.swift in Sources */,
+				C79019FE8FB2C8EAD3DB9772 /* SubscriptionView.swift in Sources */,
 				B2F56EB3012F9F31BA40D488 /* Theme.swift in Sources */,
+				8FA32AC07901E0D5D400A304 /* TimelineBarView.swift in Sources */,
+				37E03C90167D2F27540B2389 /* TimestampBadge.swift in Sources */,
+				6E0834DAACEF32278A2CF7C4 /* ToastView.swift in Sources */,
+				AE0EE7A080E9900AB65EC911 /* TranscriptSegment.swift in Sources */,
 				7ACF46A653FD74819AE99A5A /* TranscriptionService.swift in Sources */,
+				80CD6A9DE3A5E3F3DA3ACE03 /* VideoEncodingService.swift in Sources */,
 				CDA3BB99B0604BB5B6BBF452 /* WaveformView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

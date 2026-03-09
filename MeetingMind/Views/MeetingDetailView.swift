@@ -64,11 +64,6 @@ struct MeetingDetailView: View {
         VStack(spacing: 0) {
             if meeting.audioFileURL != nil {
                 AudioPlayerBar(player: playerService)
-                    .padding(Theme.cardPadding)
-                    .background(Theme.surfaceTeal)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
-                    .padding(.horizontal)
-                    .padding(.top, Theme.spacing8)
             }
 
             if !meeting.speakerSegments.isEmpty {
@@ -77,7 +72,7 @@ struct MeetingDetailView: View {
                     duration: playerService.duration,
                     currentTime: coordinator.currentTimestamp,
                     speakerNames: meeting.speakerNames,
-                    onTap: { coordinator.seekTo($0) }
+                    onTap: { coordinator.seekOnly($0) }
                 )
             }
 
@@ -129,6 +124,7 @@ struct MeetingDetailView: View {
 
             contentTabView
             .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(maxHeight: .infinity)
         }
         .navigationTitle(meeting.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -277,6 +273,9 @@ struct MeetingDetailView: View {
                 transcribeAudio()
             }
         }
+        .onDisappear {
+            playerService.stop()
+        }
         .onChange(of: playerService.currentTime) { _, newTime in
             coordinator.updatePlaybackPosition(newTime)
         }
@@ -288,7 +287,7 @@ struct MeetingDetailView: View {
     private var hasAudio: Bool { meeting.audioFileURL != nil }
 
     private var contentTabView: some View {
-        let seekHandler: ((TimeInterval) -> Void)? = hasAudio ? { coordinator.seekTo($0) } : nil
+        let seekHandler: ((TimeInterval) -> Void)? = hasAudio ? { coordinator.seekOnly($0) } : nil
         return TabView(selection: $selectedTab) {
             TranscriptTabView(
                 transcriptText: meeting.transcriptText,
@@ -299,7 +298,9 @@ struct MeetingDetailView: View {
                 speakerNames: meeting.speakerNames,
                 onSeek: seekHandler,
                 scrollToTimestamp: coordinator.scrollToTimestamp,
-                currentTimestamp: coordinator.currentTimestamp
+                currentTimestamp: coordinator.currentTimestamp,
+                isPlaying: playerService.isPlaying,
+                onScrollComplete: { coordinator.clearScrollTarget() }
             )
             .tag(0)
 
@@ -523,8 +524,7 @@ struct MeetingDetailView: View {
                     let actionItem = ActionItem(
                         title: aiItem.title,
                         type: aiItem.actionItemType,
-                        dueDate: aiItem.parsedDate,
-                        timestampSeconds: aiItem.timestampSeconds
+                        dueDate: aiItem.parsedDate
                     )
                     meeting.actionItems.append(actionItem)
                 }
@@ -569,50 +569,135 @@ struct AudioPlayerBar: View {
     var player: AudioPlayerService
 
     var body: some View {
-        VStack(spacing: 8) {
-            Slider(
-                value: Binding(
-                    get: { player.currentTime },
-                    set: { player.seek(to: $0) }
-                ),
-                in: 0...max(player.duration, 1)
-            )
+        VStack(spacing: Theme.spacing12) {
+            progressBar
+            controlsRow
+        }
+        .padding(Theme.cardPadding)
+        .background(Theme.surfaceTeal)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+        .padding(.horizontal)
+        .padding(.top, Theme.spacing8)
+    }
 
-            HStack {
-                Text(formatTime(player.currentTime))
-                    .font(.caption2)
-                    .monospacedDigit()
+    // MARK: - Progress Bar
 
-                Spacer()
+    private var progressBar: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let progress = player.duration > 0 ? player.currentTime / player.duration : 0
+            let fillWidth = width * progress
 
-                Button {
-                    if player.isPlaying { player.pause() } else { player.play() }
-                } label: {
-                    Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.title)
-                }
+            ZStack(alignment: .leading) {
+                // Track
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(UIColor.tertiarySystemFill))
+                    .frame(height: 4)
 
-                Spacer()
+                // Filled portion
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Theme.teal600)
+                    .frame(width: max(0, fillWidth), height: 4)
 
-                Menu {
-                    ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { rate in
-                        Button("\(rate, specifier: "%.2g")x") {
-                            player.setRate(Float(rate))
-                        }
-                    }
-                } label: {
-                    Text("\(player.playbackRate, specifier: "%.2g")x")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.fill)
-                        .clipShape(Capsule())
-                }
-
-                Text(formatTime(player.duration))
-                    .font(.caption2)
-                    .monospacedDigit()
+                // Thumb knob
+                Circle()
+                    .fill(Theme.teal600)
+                    .frame(width: 14, height: 14)
+                    .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
+                    .offset(x: max(0, fillWidth - 7))
             }
+            .frame(height: 14)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle().size(width: width, height: 44))
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let ratio = max(0, min(1, value.location.x / width))
+                        player.seek(to: ratio * player.duration)
+                    }
+            )
+            .accessibilityValue("\(formatTime(player.currentTime)) of \(formatTime(player.duration))")
+        }
+        .frame(height: 14)
+    }
+
+    // MARK: - Controls Row
+
+    private var controlsRow: some View {
+        HStack(spacing: Theme.spacing16) {
+            currentTimeLabel
+            Spacer()
+            skipBackButton
+            playPauseButton
+            skipForwardButton
+            Spacer()
+            speedPill
+            durationLabel
+        }
+    }
+
+    private var currentTimeLabel: some View {
+        Text(formatTime(player.currentTime))
+            .font(Theme.captionFont.monospacedDigit())
+            .foregroundStyle(.secondary)
+    }
+
+    private var durationLabel: some View {
+        Text(formatTime(player.duration))
+            .font(Theme.captionFont.monospacedDigit())
+            .foregroundStyle(.secondary)
+    }
+
+    private var skipBackButton: some View {
+        Button {
+            player.seek(to: max(0, player.currentTime - 15))
+        } label: {
+            Image(systemName: "gobackward.15")
+                .font(.system(size: 20))
+                .foregroundStyle(Theme.teal600)
+        }
+        .frame(width: 44, height: 44)
+        .accessibilityLabel("Skip back 15 seconds")
+    }
+
+    private var playPauseButton: some View {
+        Button {
+            if player.isPlaying { player.pause() } else { player.play() }
+        } label: {
+            Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                .font(.system(size: 38))
+                .foregroundStyle(Theme.teal600)
+        }
+        .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+    }
+
+    private var skipForwardButton: some View {
+        Button {
+            player.seek(to: min(player.duration, player.currentTime + 30))
+        } label: {
+            Image(systemName: "goforward.30")
+                .font(.system(size: 20))
+                .foregroundStyle(Theme.teal600)
+        }
+        .frame(width: 44, height: 44)
+        .accessibilityLabel("Skip forward 30 seconds")
+    }
+
+    private var speedPill: some View {
+        Menu {
+            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { rate in
+                Button("\(rate, specifier: "%.2g")x") {
+                    player.setRate(Float(rate))
+                }
+            }
+        } label: {
+            Text("\(player.playbackRate, specifier: "%.2g")x")
+                .font(Theme.captionBoldFont)
+                .foregroundStyle(Theme.teal600)
+                .padding(.horizontal, Theme.pillPaddingH)
+                .padding(.vertical, Theme.pillPaddingV)
+                .background(Theme.teal600.opacity(Theme.badgeBackgroundOpacity))
+                .clipShape(Capsule())
         }
     }
 
@@ -625,6 +710,237 @@ struct AudioPlayerBar: View {
 
 // MARK: - Tab Views
 
+// MARK: Speaker Segment Components
+
+struct SpeakerSegmentCard: View {
+    let segment: SpeakerSegment
+    let speakerIndex: Int
+    let isHighlighted: Bool
+    let onSeek: (TimeInterval) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing4) {
+            speakerHeader
+            segmentText
+        }
+        .padding(Theme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(isHighlighted ? Theme.surfaceTeal : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+        .overlay(alignment: .leading) {
+            accentBar
+        }
+    }
+
+    private var speakerHeader: some View {
+        HStack(spacing: Theme.spacing8) {
+            Text(segment.speaker)
+                .font(Theme.captionBoldFont)
+                .foregroundStyle(Theme.speakerColor(for: speakerIndex))
+            TimestampBadge(seconds: Int(segment.startSeconds), onTap: onSeek)
+        }
+    }
+
+    private var segmentText: some View {
+        Text(segment.text)
+            .font(Theme.bodyFont)
+            .textSelection(.enabled)
+    }
+
+    private var accentBar: some View {
+        RoundedRectangle(cornerRadius: Theme.accentBarCornerRadius)
+            .fill(isHighlighted ? Color.accentColor : Theme.speakerColor(for: speakerIndex))
+            .frame(width: isHighlighted ? 4 : Theme.accentBarWidth)
+            .padding(.vertical, Theme.spacing4)
+    }
+}
+
+// MARK: - Time Block Grouping
+
+struct TimeBlock: Identifiable {
+    let id: Int  // block index (0, 1, 2...)
+    let startSeconds: TimeInterval
+    let endSeconds: TimeInterval
+    let segments: [(index: Int, segment: SpeakerSegment)]
+
+    var headerText: String {
+        let startMin = Int(startSeconds) / 60
+        let endMin = Int(endSeconds) / 60
+        return "\(startMin):00 – \(endMin):00"
+    }
+
+    static func groupIntoTimeBlocks(_ segments: [SpeakerSegment], blockSize: TimeInterval = 300) -> [TimeBlock] {
+        guard !segments.isEmpty else { return [] }
+        var blocks: [Int: [(index: Int, segment: SpeakerSegment)]] = [:]
+        for (index, segment) in segments.enumerated() {
+            let blockIndex = Int(segment.startSeconds / blockSize)
+            blocks[blockIndex, default: []].append((index: index, segment: segment))
+        }
+        let sortedKeys = blocks.keys.sorted()
+        return sortedKeys.map { key in
+            TimeBlock(
+                id: key,
+                startSeconds: TimeInterval(key) * blockSize,
+                endSeconds: TimeInterval(key + 1) * blockSize,
+                segments: blocks[key]!
+            )
+        }
+    }
+}
+
+struct TimeBlockHeader: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: Theme.spacing8) {
+            Image(systemName: "clock")
+                .font(Theme.captionBoldFont)
+                .foregroundStyle(.secondary)
+            Text(text)
+                .font(Theme.sectionHeaderFont)
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, Theme.spacing6)
+        .background(.ultraThinMaterial)
+    }
+}
+
+// MARK: - Speaker Chip
+
+struct SpeakerChip: View {
+    let name: String
+    let isSelected: Bool
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(name)
+                .font(Theme.captionBoldFont)
+                .padding(.horizontal, Theme.pillPaddingH)
+                .padding(.vertical, Theme.pillPaddingV)
+                .background(isSelected ? color : Color.clear)
+                .foregroundStyle(isSelected ? .white : .primary)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule().stroke(isSelected ? Color.clear : color.opacity(0.3), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Speaker Segment List
+
+struct SpeakerSegmentListView: View {
+    let speakerSegments: [SpeakerSegment]
+    let speakerNames: [String]
+    let onSeek: (TimeInterval) -> Void
+    let currentTimestamp: TimeInterval
+    var onAppearIndex: ((Int) -> Void)?
+    var onDisappearIndex: ((Int) -> Void)?
+
+    var body: some View {
+        let timeBlocks = TimeBlock.groupIntoTimeBlocks(speakerSegments)
+        LazyVStack(alignment: .leading, spacing: Theme.spacing12, pinnedViews: [.sectionHeaders]) {
+            ForEach(timeBlocks) { block in
+                Section {
+                    ForEach(block.segments, id: \.index) { item in
+                        SpeakerSegmentCard(
+                            segment: item.segment,
+                            speakerIndex: speakerNames.firstIndex(of: item.segment.speaker) ?? 0,
+                            isHighlighted: isSegmentActive(item.segment),
+                            onSeek: onSeek
+                        )
+                        .id(item.index)
+                        .onAppear { onAppearIndex?(item.index) }
+                        .onDisappear { onDisappearIndex?(item.index) }
+                    }
+                } header: {
+                    TimeBlockHeader(text: block.headerText)
+                }
+            }
+        }
+        .padding()
+    }
+
+    private func isSegmentActive(_ segment: SpeakerSegment) -> Bool {
+        currentTimestamp >= segment.startSeconds && currentTimestamp < segment.endSeconds
+    }
+}
+
+// MARK: Chunked Transcript Components
+
+struct ChunkedTranscriptListView: View {
+    let segments: [TranscriptSegment]
+    let onSeek: (TimeInterval) -> Void
+    let currentTimestamp: TimeInterval
+    var onAppearIndex: ((Int) -> Void)?
+    var onDisappearIndex: ((Int) -> Void)?
+
+    var body: some View {
+        let chunks = TranscriptionService.chunkSegments(segments)
+        LazyVStack(alignment: .leading, spacing: Theme.spacing16) {
+            ForEach(Array(chunks.enumerated()), id: \.offset) { index, chunk in
+                chunkRow(chunk: chunk, chunks: chunks, index: index)
+            }
+        }
+        .padding()
+    }
+
+    private func chunkRow(chunk: TranscriptSegment, chunks: [TranscriptSegment], index: Int) -> some View {
+        VStack(alignment: .leading, spacing: Theme.spacing4) {
+            TimestampBadge(seconds: Int(chunk.timestamp), onTap: onSeek)
+            Text(chunk.text)
+                .font(Theme.bodyFont)
+                .textSelection(.enabled)
+        }
+        .padding(Theme.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(isChunkActive(chunk, chunks: chunks, index: index) ? Theme.surfaceTeal : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
+        .id(index)
+        .onAppear { onAppearIndex?(index) }
+        .onDisappear { onDisappearIndex?(index) }
+    }
+
+    private func isChunkActive(_ chunk: TranscriptSegment, chunks: [TranscriptSegment], index: Int) -> Bool {
+        let start = chunk.timestamp
+        let end = index + 1 < chunks.count ? chunks[index + 1].timestamp : .infinity
+        return currentTimestamp >= start && currentTimestamp < end
+    }
+}
+
+struct JumpToNowPlayingButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: Theme.spacing4) {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 10))
+                Text("Now Playing")
+                    .font(Theme.captionBoldFont)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, Theme.spacing16)
+            .padding(.vertical, Theme.spacing8)
+            .background(Theme.teal600)
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Jump to now playing segment")
+    }
+}
+
+enum TranscriptMode: String, CaseIterable {
+    case speakers = "Speakers"
+    case fullTranscript = "Full Transcript"
+}
+
 struct TranscriptTabView: View {
     let transcriptText: String
     let isTranscribing: Bool
@@ -635,22 +951,48 @@ struct TranscriptTabView: View {
     var onSeek: ((TimeInterval) -> Void)?
     var scrollToTimestamp: TimeInterval?
     var currentTimestamp: TimeInterval = 0
+    var isPlaying: Bool = false
+    var onScrollComplete: (() -> Void)?
+
+    @State private var transcriptMode: TranscriptMode = .speakers
+    @State private var visibleSegmentIndices: Set<Int> = []
+    @State private var selectedSpeaker: String? = nil
+    @State private var searchText: String = ""
+
+    private var filteredSpeakerSegments: [SpeakerSegment] {
+        var result = speakerSegments
+        if let speaker = selectedSpeaker {
+            result = result.filter { $0.speaker == speaker }
+        }
+        if !searchText.isEmpty {
+            result = result.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
+        }
+        return result
+    }
+
+    private var activeSegmentIndex: Int? {
+        if transcriptMode == .speakers {
+            return speakerSegments.firstIndex { seg in
+                currentTimestamp >= seg.startSeconds && currentTimestamp < seg.endSeconds
+            }
+        } else {
+            let chunks = TranscriptionService.chunkSegments(segments)
+            return chunks.lastIndex { chunk in
+                currentTimestamp >= chunk.timestamp
+            }
+        }
+    }
+
+    private var shouldShowJumpButton: Bool {
+        guard isPlaying, let activeIdx = activeSegmentIndex else { return false }
+        return !visibleSegmentIndices.contains(activeIdx)
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 if isTranscribing {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("Transcribing...")
-                            .foregroundStyle(.secondary)
-                        if !partialText.isEmpty {
-                            Text(partialText)
-                                .padding()
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.top, 40)
+                    transcribingContent
                 } else if transcriptText.isEmpty {
                     ContentUnavailableView(
                         "No Transcript",
@@ -658,75 +1000,173 @@ struct TranscriptTabView: View {
                         description: Text("Tap the \u{22EF} menu and select Transcribe, or tap the waveform button in the toolbar.")
                     )
                 } else if !speakerSegments.isEmpty, let onSeek {
-                    // Speaker-labeled transcript
-                    LazyVStack(alignment: .leading, spacing: Theme.spacing12) {
-                        ForEach(Array(speakerSegments.enumerated()), id: \.offset) { index, segment in
-                            let speakerIndex = speakerNames.firstIndex(of: segment.speaker) ?? 0
-                            let isHighlighted = isSegmentActive(segment)
+                    // Search bar (shown in both modes)
+                    searchBar
 
-                            VStack(alignment: .leading, spacing: Theme.spacing4) {
-                                HStack(spacing: Theme.spacing8) {
-                                    Text(segment.speaker)
-                                        .font(Theme.captionBoldFont)
-                                        .foregroundStyle(Theme.speakerColor(for: speakerIndex))
-                                    TimestampBadge(seconds: Int(segment.startSeconds), onTap: onSeek)
-                                }
+                    // Mode picker
+                    transcriptModePicker
 
-                                Text(segment.text)
-                                    .font(Theme.bodyFont)
-                                    .textSelection(.enabled)
-                            }
-                            .padding(Theme.cardPadding)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(isHighlighted ? Theme.subtleAccent : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: Theme.cardCornerRadius))
-                            .overlay(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: Theme.accentBarCornerRadius)
-                                    .fill(Theme.speakerColor(for: speakerIndex))
-                                    .frame(width: Theme.accentBarWidth)
-                                    .padding(.vertical, Theme.spacing4)
-                            }
-                            .id(index)
+                    if transcriptMode == .speakers {
+                        // Speaker filter bar (only with 2+ speakers)
+                        if speakerNames.count >= 2 {
+                            speakerFilterBar
                         }
+
+                        // Results count when searching
+                        if !searchText.isEmpty {
+                            Text("\(filteredSpeakerSegments.count) results")
+                                .font(Theme.captionFont)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal)
+                                .padding(.top, Theme.spacing4)
+                        }
+
+                        if filteredSpeakerSegments.isEmpty && !searchText.isEmpty {
+                            ContentUnavailableView.search(text: searchText)
+                        } else {
+                            SpeakerSegmentListView(
+                                speakerSegments: filteredSpeakerSegments,
+                                speakerNames: speakerNames,
+                                onSeek: onSeek,
+                                currentTimestamp: currentTimestamp,
+                                onAppearIndex: { visibleSegmentIndices.insert($0) },
+                                onDisappearIndex: { visibleSegmentIndices.remove($0) }
+                            )
+                        }
+                    } else {
+                        ChunkedTranscriptListView(
+                            segments: segments,
+                            onSeek: onSeek,
+                            currentTimestamp: currentTimestamp,
+                            onAppearIndex: { visibleSegmentIndices.insert($0) },
+                            onDisappearIndex: { visibleSegmentIndices.remove($0) }
+                        )
                     }
-                    .padding()
                 } else if !segments.isEmpty, let onSeek {
-                    // Chunked transcript with timestamp headers (fallback)
-                    LazyVStack(alignment: .leading, spacing: 16) {
-                        let chunks = TranscriptionService.chunkSegments(segments)
-                        ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
-                            VStack(alignment: .leading, spacing: 4) {
-                                TimestampBadge(seconds: Int(chunk.timestamp), onTap: onSeek)
-                                Text(chunk.text)
-                                    .textSelection(.enabled)
-                            }
-                        }
-                    }
-                    .padding()
+                    ChunkedTranscriptListView(
+                        segments: segments,
+                        onSeek: onSeek,
+                        currentTimestamp: currentTimestamp,
+                        onAppearIndex: { visibleSegmentIndices.insert($0) },
+                        onDisappearIndex: { visibleSegmentIndices.remove($0) }
+                    )
                 } else {
                     Text(transcriptText)
                         .padding()
                         .textSelection(.enabled)
                 }
             }
+            .overlay(alignment: .bottom) {
+                if shouldShowJumpButton {
+                    JumpToNowPlayingButton {
+                        if let activeIdx = activeSegmentIndex {
+                            withAnimation {
+                                proxy.scrollTo(activeIdx, anchor: .center)
+                            }
+                        }
+                    }
+                    .padding(.bottom, Theme.spacing16)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(.easeInOut(duration: 0.25), value: shouldShowJumpButton)
             .onChange(of: scrollToTimestamp) { _, newValue in
                 guard let target = newValue else { return }
-                let targetIndex = speakerSegments.firstIndex { seg in
-                    target >= seg.startSeconds && target < seg.endSeconds
-                } ?? speakerSegments.firstIndex { seg in
-                    seg.startSeconds >= target
-                }
-                if let idx = targetIndex {
-                    withAnimation {
-                        proxy.scrollTo(idx, anchor: .center)
+                if transcriptMode == .speakers && !speakerSegments.isEmpty {
+                    let targetIndex = speakerSegments.firstIndex { seg in
+                        target >= seg.startSeconds && target < seg.endSeconds
+                    } ?? speakerSegments.firstIndex { seg in
+                        seg.startSeconds >= target
+                    }
+                    if let idx = targetIndex {
+                        withAnimation {
+                            proxy.scrollTo(idx, anchor: .center)
+                        }
+                    }
+                } else if !segments.isEmpty {
+                    let cachedChunks = TranscriptionService.chunkSegments(segments)
+                    let targetIndex = cachedChunks.lastIndex { chunk in
+                        target >= chunk.timestamp
+                    }
+                    if let idx = targetIndex {
+                        withAnimation {
+                            proxy.scrollTo(idx, anchor: .center)
+                        }
                     }
                 }
+                onScrollComplete?()
+            }
+            .onChange(of: transcriptMode) { _, _ in
+                visibleSegmentIndices.removeAll()
+                searchText = ""
+                selectedSpeaker = nil
             }
         }
     }
 
-    private func isSegmentActive(_ segment: SpeakerSegment) -> Bool {
-        currentTimestamp >= segment.startSeconds && currentTimestamp < segment.endSeconds
+    private var transcriptModePicker: some View {
+        Picker("View", selection: $transcriptMode) {
+            ForEach(TranscriptMode.allCases, id: \.self) { mode in
+                Text(mode.rawValue).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .padding(.top, Theme.spacing8)
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: Theme.spacing8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Search transcript...", text: $searchText)
+                .font(Theme.bodyFont)
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(Theme.spacing12)
+        .background(Color(UIColor.tertiarySystemFill))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal)
+        .padding(.top, Theme.spacing8)
+    }
+
+    private var speakerFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Theme.spacing8) {
+                SpeakerChip(name: "All", isSelected: selectedSpeaker == nil, color: .accentColor) {
+                    selectedSpeaker = nil
+                }
+                ForEach(Array(speakerNames.enumerated()), id: \.offset) { index, name in
+                    SpeakerChip(name: name, isSelected: selectedSpeaker == name, color: Theme.speakerColor(for: index)) {
+                        selectedSpeaker = name
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding(.vertical, Theme.spacing4)
+    }
+
+    private var transcribingContent: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("Transcribing...")
+                .foregroundStyle(.secondary)
+            if !partialText.isEmpty {
+                Text(partialText)
+                    .padding()
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.top, 40)
     }
 }
 
