@@ -804,7 +804,7 @@ struct ChunkedTranscriptListView: View {
         .padding()
     }
 
-    private func chunkRow(chunk: (timestamp: TimeInterval, text: String), chunks: [(timestamp: TimeInterval, text: String)], index: Int) -> some View {
+    private func chunkRow(chunk: TranscriptSegment, chunks: [TranscriptSegment], index: Int) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing4) {
             TimestampBadge(seconds: Int(chunk.timestamp), onTap: onSeek)
             Text(chunk.text)
@@ -820,7 +820,7 @@ struct ChunkedTranscriptListView: View {
         .onDisappear { onDisappearIndex?(index) }
     }
 
-    private func isChunkActive(_ chunk: (timestamp: TimeInterval, text: String), chunks: [(timestamp: TimeInterval, text: String)], index: Int) -> Bool {
+    private func isChunkActive(_ chunk: TranscriptSegment, chunks: [TranscriptSegment], index: Int) -> Bool {
         let start = chunk.timestamp
         let end = index + 1 < chunks.count ? chunks[index + 1].timestamp : .infinity
         return currentTimestamp >= start && currentTimestamp < end
